@@ -1,0 +1,338 @@
+<div class="hvp" id="hvp-top" data-integration="{{integrationId}}">
+<style>
+.hvp{--t-text:var(--hpe-color-text-default,inherit);--t-strong:var(--hpe-color-text-strong,inherit);--t-weak:var(--hpe-color-text-weak,#7d8a94);
+ --t-line:var(--hpe-color-border-weak,rgba(125,138,148,.35));--t-line2:var(--hpe-color-border-default,rgba(125,138,148,.6));
+ --t-front:var(--hpe-color-background-front,transparent);--t-contrast:var(--hpe-color-background-contrast,rgba(125,138,148,.08));
+ --t-brand:var(--hpe-button-primary-rest-background,#008567);--t-onbrand:var(--hpe-button-primary-rest-textColor,#fff);
+ --t-crit:var(--hpe-color-border-critical,#cc1f1a);
+ --t-ok-bg:var(--hpe-color-background-ok,rgba(46,158,106,.15));--t-warn-bg:var(--hpe-color-background-warning,rgba(212,160,23,.18));
+ --t-crit-bg:var(--hpe-color-background-critical,rgba(208,70,79,.15));--t-info-bg:var(--hpe-color-background-info,rgba(47,127,193,.12));
+ --t-unknown-bg:var(--hpe-color-background-unknown,rgba(125,138,148,.12));
+ color:var(--t-text);font-size:14px;max-width:100%;overflow-x:hidden;margin-top:4px}
+.hvp h3,.hvp h4{text-transform:none;color:var(--t-strong);margin:0}
+.hvp h3{font-size:18px;font-weight:600}
+.hvp p{margin:0 0 10px}
+.hvp>input[type=radio]{position:absolute;opacity:0;pointer-events:none;width:0;height:0}
+.hvp-muted{color:var(--t-weak)}
+.hvp-bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:0 0 12px}
+.hvp-spacer{flex:1}
+.hvp form{margin:0}
+.hvp .hvp-btn{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;width:130px;height:32px;padding:0 14px;margin:0;border-radius:9999px;border:1px solid transparent;
+ font:500 14px/1 inherit;text-transform:none;white-space:nowrap;cursor:pointer;text-decoration:none}
+.hvp .hvp-btn-primary{background:var(--t-brand);color:var(--t-onbrand);font-weight:600}
+.hvp .hvp-btn-primary:hover{filter:brightness(.92)}
+.hvp .hvp-btn-secondary{background:var(--hpe-button-secondary-rest-background,rgba(125,138,148,.12));color:var(--hpe-button-secondary-rest-textColor,var(--t-strong))}
+.hvp .hvp-btn-secondary:hover{background:var(--t-line)}
+.hvp .hvp-btn-danger{background:transparent;color:var(--hpe-color-text-critical,#cc1f1a);border-color:var(--t-crit)}
+.hvp-card{padding:18px 22px;border:1px solid var(--t-line);border-radius:12px;background:var(--t-front)}
+.hvp-table{width:100%;border-collapse:collapse;margin:0}
+.hvp-table th{text-align:left;font-weight:600;font-size:13px;color:var(--t-strong);padding:8px 12px;border-bottom:1px solid var(--t-line2);white-space:nowrap;text-transform:none;background:transparent!important}
+.hvp-table td{padding:9px 12px;border-bottom:1px solid var(--t-line);vertical-align:middle;background:transparent!important}
+.hvp-table tr{background:transparent!important}
+.hvp-table tbody tr:hover td{background:var(--t-contrast)!important}
+.hvp-name{font-weight:600;color:var(--t-strong)}
+.hvp-small{display:block;font-size:12px;color:var(--t-weak)}
+.hvp-empty{padding:16px;border:1px dashed var(--t-line2);border-radius:8px;color:var(--t-weak)}
+.hvp-chip{display:inline-block;padding:2px 10px;border-radius:9999px;font-size:12px;font-weight:600;white-space:nowrap;color:var(--t-strong);border:1px solid transparent}
+.hvp-chip-ok{background:var(--t-ok-bg);border-color:var(--hpe-color-decorative-brand,#01a982)}
+.hvp-chip-warn{background:var(--t-warn-bg);border-color:var(--hpe-color-decorative-orange,#ffbc44)}
+.hvp-chip-bad{background:var(--t-crit-bg);border-color:var(--t-crit)}
+.hvp-chip-info{background:var(--t-info-bg);border-color:var(--hpe-color-decorative-blue,#00739d)}
+.hvp-chip-unknown{background:var(--t-unknown-bg);border-color:var(--t-line2)}
+.hvp-alert{padding:12px 16px;margin:0 0 16px;border-radius:8px;border-left:4px solid var(--t-line2);background:var(--t-info-bg);color:var(--t-strong)}
+.hvp-alert-success{background:var(--t-ok-bg);border-left-color:var(--hpe-color-decorative-brand,#01a982)}
+.hvp-alert-danger{background:var(--t-crit-bg);border-left-color:var(--t-crit)}
+.hvp-alert-warning{background:var(--t-warn-bg);border-left-color:var(--hpe-color-decorative-orange,#ffbc44)}
+.hvp-stats{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 6px}
+.hvp-stat{padding:8px 14px;border:1px solid var(--t-line);border-radius:8px;min-width:130px;background:var(--t-front)}
+.hvp-stat b{display:block;font-size:18px;color:var(--t-strong)}
+.hvp-tabs{display:flex;gap:4px;border-bottom:1px solid var(--t-line2);margin:18px 0 16px}
+.hvp-tabs label{margin:0 0 -1px;padding:9px 18px;font-weight:600;cursor:pointer;color:var(--t-weak);border-bottom:3px solid transparent}
+.hvp-tabs label:hover{color:var(--t-strong)}
+.hvp-tabs .hvp-chip{margin-left:6px;font-size:11px;padding:0 8px}
+.hvp-sub{display:none}
+#hvp-s-clusters:checked~.hvp-tabs label[for=hvp-s-clusters],#hvp-s-s3:checked~.hvp-tabs label[for=hvp-s-s3],#hvp-s-git:checked~.hvp-tabs label[for=hvp-s-git],
+#hvp-s-activity:checked~.hvp-tabs label[for=hvp-s-activity]{color:var(--t-strong);border-bottom-color:var(--t-brand)}
+#hvp-s-clusters:checked~.hvp-subs .hvp-sub-clusters,#hvp-s-s3:checked~.hvp-subs .hvp-sub-s3,#hvp-s-git:checked~.hvp-subs .hvp-sub-git,
+#hvp-s-activity:checked~.hvp-subs .hvp-sub-activity{display:block}
+.hvp-form{display:grid;grid-template-columns:repeat(2,minmax(220px,1fr));gap:14px 18px;max-width:860px}
+.hvp-form label{display:block;font-size:12px;font-weight:600;color:var(--t-strong);margin:0 0 4px}
+.hvp-hint{display:block;font-size:12px;color:var(--t-weak);font-weight:normal;margin-top:3px}
+.hvp input[type=text],.hvp input[type=password],.hvp select.hvp-select{width:100%;box-sizing:border-box;height:34px;padding:4px 10px;border:1px solid var(--t-line2);border-radius:6px;background:var(--t-front);color:var(--t-strong)}
+.hvp select.hvp-select option{color:#1f2428}
+.hvp input::placeholder{color:var(--t-weak);opacity:.55;font-style:italic}
+.hvp .hvp-check{display:flex;gap:8px;align-items:center;font-weight:normal;margin:4px 0}
+.hvp-s3form:has(.hvp-src option[value^="bucket:"]:checked) :is(.hvp-f-endpoint,.hvp-f-region,.hvp-f-bucket,.hvp-f-keys){display:none}
+.hvp-s3form:has(.hvp-src option[value^="cloud:"]:checked) :is(.hvp-f-endpoint,.hvp-f-keys){display:none}
+.hvp-test{margin:16px 0 0;font-size:13px}
+.hvp form.hvp-pop,.hvp-pop{position:fixed;inset:0;margin:auto;width:min(440px,92vw);height:fit-content;box-sizing:border-box;padding:18px;border:1px solid var(--t-line2);border-radius:12px;background:var(--hpe-color-background-front,#2b3036);color:var(--t-text);box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.hvp-pop::backdrop{background:rgba(0,0,0,.4)}
+.hvp-popwide{width:min(640px,94vw)}
+.hvp-pop h3{margin:0 0 6px}
+.hvp-popbtns{display:flex;gap:10px;margin-top:16px}
+.hvp-log{font:12px/1.5 monospace;height:4.6em;overflow:auto;white-space:pre;margin:14px 0 0;padding:6px 10px;border-radius:6px;background:#1f2428;color:#d6dde2;cursor:pointer}
+.hvp-log.hvp-big{height:24em}
+.hvp-actions{display:flex;gap:8px;flex-wrap:nowrap;align-items:center;justify-content:flex-end}
+.hvp-found{margin:0 0 14px;padding:10px 14px;border-radius:8px;background:var(--t-info-bg);border-left:4px solid var(--hpe-color-decorative-blue,#00739d)}
+</style>
+
+<div class="hvp-bar">
+  <h3>HKS Velero</h3>
+  <span class="hvp-spacer"></span>
+  {{#if canRead}}<span class="hvp-muted">Access: <b>{{access}}</b></span>{{/if}}
+</div>
+
+{{#if hasFlash}}<div class="hvp-alert hvp-alert-{{flashLevel}}">{{flashText}}</div>{{/if}}
+{{#if error}}<div class="hvp-alert hvp-alert-danger">{{error}}</div>{{/if}}
+
+{{#unless canRead}}<div class="hvp-empty">No access. Ask for the HKS Velero permission.</div>{{/unless}}
+
+{{#if canRead}}
+<div class="hvp-stats">
+  <div class="hvp-stat"><span class="hvp-muted">HKS clusters</span><b>{{clusterCount}}</b></div>
+  <div class="hvp-stat"><span class="hvp-muted">Protected</span><b>{{protectedCount}}</b></div>
+  <div class="hvp-stat"><span class="hvp-muted">S3 buckets</span><b>{{s3Count}}</b></div>
+  <div class="hvp-stat"><span class="hvp-muted">Git repositories</span><b>{{gitCount}}</b></div>
+</div>
+
+<input type="radio" name="hvp-sub" id="hvp-s-clusters" {{#if subClusters}}checked{{/if}}/>
+<input type="radio" name="hvp-sub" id="hvp-s-s3" {{#if subS3}}checked{{/if}}/>
+<input type="radio" name="hvp-sub" id="hvp-s-git" {{#if subGit}}checked{{/if}}/>
+<input type="radio" name="hvp-sub" id="hvp-s-activity" {{#if subActivity}}checked{{/if}}/>
+
+<div class="hvp-tabs">
+  <label for="hvp-s-clusters">Clusters</label>
+  <label for="hvp-s-s3">S3 buckets<span class="hvp-chip hvp-chip-{{storageChipClass}}">{{storageChip}}</span></label>
+  <label for="hvp-s-git">Git repositories<span class="hvp-chip hvp-chip-{{gitChipClass}}">{{gitChip}}</span></label>
+  <label for="hvp-s-activity">Activity</label>
+</div>
+
+<div class="hvp-subs">
+
+<div class="hvp-sub hvp-sub-clusters"><div class="hvp-card">
+  {{#if hasFoundVelero}}<div class="hvp-found">Velero is already on {{#each foundVelero}}<b>{{name}}</b>{{#unless @last}}, {{/unless}}{{/each}}. Press Use to back up with it.</div>{{/if}}
+  {{#if hasClusters}}
+  <table class="hvp-table">
+    <thead><tr><th>Cluster</th><th>Velero</th><th>Backups to</th><th>Git copy to</th><th>Last backup</th><th></th></tr></thead>
+    <tbody>
+    {{#each clusters}}
+    <tr>
+      <td><span class="hvp-name">{{name}}</span></td>
+      <td><span class="hvp-chip hvp-chip-{{chip}}">{{status}}</span>{{#if version}}<span class="hvp-small">{{version}}</span>{{/if}}{{#if detail}}<span class="hvp-small">{{detail}}</span>{{/if}}</td>
+      <td>{{s3Name}}{{#if protected}}{{#unless locationOk}} <span class="hvp-chip hvp-chip-warn">{{location}}</span>{{/unless}}{{/if}}</td>
+      <td>{{gitName}}{{#if gitLast}}<span class="hvp-small">{{gitLast}}</span>{{/if}}</td>
+      <td class="hvp-muted">{{lastGood}}</td>
+      <td>
+        <div class="hvp-actions">
+        {{#if protected}}<a class="hvp-btn hvp-btn-secondary" href="{{url}}">Open</a>{{/if}}
+        {{#if ../canManage}}
+          <button type="button" class="hvp-btn hvp-btn-secondary" popovertarget="hvp-as-{{id}}">Change</button>
+          <form id="hvp-as-{{id}}" popover class="hvp-pop" method="post" action="/plugin/hks-velero/assign">
+            <h3>{{name}}</h3>
+            <input type="hidden" name="{{../csrfParam}}" value="{{../csrfToken}}"/><input type="hidden" name="integrationId" value="{{../integrationId}}"/><input type="hidden" name="clusterId" value="{{id}}"/>
+            <div class="hvp-form" style="grid-template-columns:1fr;margin-top:10px">
+              <div><label>Backups to</label><select name="s3" class="hvp-select">{{#each s3Choices}}<option value="{{id}}" {{#if selected}}selected{{/if}}>{{name}}</option>{{/each}}</select></div>
+              <div><label>Git copy to</label><select name="git" class="hvp-select">{{#each gitChoices}}<option value="{{id}}" {{#if selected}}selected{{/if}}>{{name}}</option>{{/each}}</select></div>
+            </div>
+            <div class="hvp-popbtns"><button type="submit" class="hvp-btn hvp-btn-primary">Save</button><button type="button" class="hvp-btn hvp-btn-secondary" popovertarget="hvp-as-{{id}}" popovertargetaction="hide">Cancel</button></div>
+          </form>
+          {{#if canInstall}}
+          <form method="post" action="/plugin/hks-velero/install"><input type="hidden" name="{{../csrfParam}}" value="{{../csrfToken}}"/><input type="hidden" name="integrationId" value="{{../integrationId}}"/><input type="hidden" name="clusterId" value="{{id}}"/>
+            <button type="submit" class="hvp-btn hvp-btn-primary">Install</button></form>
+          {{/if}}
+          {{#if canUpdate}}
+          <form method="post" action="/plugin/hks-velero/install"><input type="hidden" name="{{../csrfParam}}" value="{{../csrfToken}}"/><input type="hidden" name="integrationId" value="{{../integrationId}}"/><input type="hidden" name="clusterId" value="{{id}}"/>
+            <button type="submit" class="hvp-btn hvp-btn-primary" title="Update to {{../bundled}}">Update</button></form>
+          {{/if}}
+          {{#if canUse}}
+          <form method="post" action="/plugin/hks-velero/use"><input type="hidden" name="{{../csrfParam}}" value="{{../csrfToken}}"/><input type="hidden" name="integrationId" value="{{../integrationId}}"/><input type="hidden" name="clusterId" value="{{id}}"/>
+            <button type="submit" class="hvp-btn hvp-btn-primary">Use</button></form>
+          {{/if}}
+          {{#if canRemove}}
+          <button type="button" class="hvp-btn hvp-btn-danger" popovertarget="hvp-rm-{{id}}">Remove</button>
+          <form id="hvp-rm-{{id}}" popover class="hvp-pop" method="post" action="/plugin/hks-velero/remove">
+            <h3>Remove from {{name}}?</h3>
+            <p style="margin-top:8px">Backups in storage stay.</p>
+            <input type="hidden" name="{{../csrfParam}}" value="{{../csrfToken}}"/><input type="hidden" name="integrationId" value="{{../integrationId}}"/><input type="hidden" name="clusterId" value="{{id}}"/>
+            <div class="hvp-form" style="grid-template-columns:1fr"><div><label for="hvp-rmc-{{id}}">Type the cluster name</label><input type="text" id="hvp-rmc-{{id}}" name="confirm" required autocomplete="off"/></div></div>
+            <div class="hvp-popbtns"><button type="submit" class="hvp-btn hvp-btn-danger">Remove</button><button type="button" class="hvp-btn hvp-btn-secondary" popovertarget="hvp-rm-{{id}}" popovertargetaction="hide">Cancel</button></div>
+          </form>
+          {{/if}}
+        {{/if}}
+        </div>
+      </td>
+    </tr>
+    {{/each}}
+    </tbody>
+  </table>
+  {{else}}
+  <div class="hvp-empty">No HKS clusters.</div>
+  {{/if}}
+</div></div>
+
+<div class="hvp-sub hvp-sub-s3"><div class="hvp-card">
+  <div class="hvp-bar"><h4>S3 buckets</h4><span class="hvp-muted">Full backups with volume data</span><span class="hvp-spacer"></span>
+    {{#if canManage}}<button type="button" class="hvp-btn hvp-btn-primary" popovertarget="hvp-s3-new">Add bucket</button>{{/if}}</div>
+  {{#if hasS3Rows}}
+  <table class="hvp-table">
+    <thead><tr><th>Name</th><th>Where</th><th>Status</th><th>Used by</th><th></th></tr></thead>
+    <tbody>
+    {{#each s3Rows}}
+    <tr>
+      <td><span class="hvp-name">{{name}}</span></td>
+      <td class="hvp-muted">{{where}}</td>
+      <td><span class="hvp-chip hvp-chip-{{chip}}">{{status}}</span>{{#if failed}}<span class="hvp-small">{{message}}</span>{{else}}{{#if at}}<span class="hvp-small">{{at}}</span>{{/if}}{{/if}}</td>
+      <td class="hvp-muted">{{used}}</td>
+      <td>{{#if ../canManage}}<div class="hvp-actions">
+        <form method="post" action="/plugin/hks-velero/test-s3"><input type="hidden" name="{{../csrfParam}}" value="{{../csrfToken}}"/><input type="hidden" name="integrationId" value="{{../integrationId}}"/><input type="hidden" name="targetId" value="{{id}}"/><button type="submit" class="hvp-btn hvp-btn-secondary">Test</button></form>
+        <button type="button" class="hvp-btn hvp-btn-secondary" popovertarget="hvp-s3-{{id}}">Edit</button>
+        <button type="button" class="hvp-btn hvp-btn-danger" popovertarget="hvp-s3-rm-{{id}}">Remove</button>
+      </div>
+      <form id="hvp-s3-{{id}}" popover class="hvp-pop hvp-popwide" method="post" action="/plugin/hks-velero/storage" autocomplete="off">
+        <h3>Edit {{name}}</h3><input type="hidden" name="targetId" value="{{id}}"/>
+    <input type="hidden" name="{{../csrfParam}}" value="{{../csrfToken}}"/><input type="hidden" name="integrationId" value="{{../integrationId}}"/>
+    <div class="hvp-form hvp-s3form" style="grid-template-columns:1fr 1fr">
+      <div style="grid-column:1/-1"><label>Name</label><input type="text" name="name" value="{{name}}" placeholder="Production" required/></div>
+      <div style="grid-column:1/-1"><label>From Morpheus</label>
+        <select name="s3Source" class="hvp-select hvp-src"><option value="">None, type below</option>{{#each options}}<option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select></div>
+      <div class="hvp-f-endpoint"><label>Endpoint</label><input type="text" name="endpoint" value="{{cfg.endpoint}}" placeholder="Empty for AWS"/></div>
+      <div class="hvp-f-region"><label>Region</label><input type="text" name="region" value="{{cfg.region}}" placeholder="us-east-1"/></div>
+      <div class="hvp-f-bucket"><label>Bucket</label><input type="text" name="bucket" value="{{cfg.bucket}}"/></div>
+      <div><label>Folder (optional)</label><input type="text" name="prefix" value="{{cfg.prefix}}"/></div>
+      <div class="hvp-f-keys"><label>Access key</label><input type="text" name="accessKey" value="{{cfg.accessKey}}"/></div>
+      <div class="hvp-f-keys"><label>Secret key</label><input type="password" name="secretKey" placeholder="{{#if hasSecret}}Saved{{/if}}" autocomplete="new-password"/></div>
+      <div style="grid-column:1/-1"><label class="hvp-check"><input type="checkbox" name="skipTls" {{#if skipTls}}checked{{/if}}/> Skip TLS check</label></div>
+    </div>
+        <div class="hvp-popbtns"><button type="submit" class="hvp-btn hvp-btn-primary">Save and test</button><button type="button" class="hvp-btn hvp-btn-secondary" popovertarget="hvp-s3-{{id}}" popovertargetaction="hide">Cancel</button></div>
+      </form>
+      <form id="hvp-s3-rm-{{id}}" popover class="hvp-pop" method="post" action="/plugin/hks-velero/target-delete">
+        <h3>Remove {{name}}?</h3><p style="margin-top:8px">Backups in the bucket stay.</p>
+        <input type="hidden" name="{{../csrfParam}}" value="{{../csrfToken}}"/><input type="hidden" name="integrationId" value="{{../integrationId}}"/><input type="hidden" name="kind" value="s3"/><input type="hidden" name="targetId" value="{{id}}"/>
+        <div class="hvp-popbtns"><button type="submit" class="hvp-btn hvp-btn-danger">Remove</button><button type="button" class="hvp-btn hvp-btn-secondary" popovertarget="hvp-s3-rm-{{id}}" popovertargetaction="hide">Cancel</button></div>
+      </form>{{/if}}</td>
+    </tr>
+    {{/each}}
+    </tbody>
+  </table>
+  {{else}}
+  <div class="hvp-empty">No bucket yet. Press Add bucket.</div>
+  {{/if}}
+  {{#if canManage}}
+  <form id="hvp-s3-new" popover class="hvp-pop hvp-popwide" method="post" action="/plugin/hks-velero/storage" autocomplete="off">
+    <h3>Add bucket</h3>
+    <input type="hidden" name="{{csrfParam}}" value="{{csrfToken}}"/><input type="hidden" name="integrationId" value="{{integrationId}}"/>
+    <div class="hvp-form hvp-s3form" style="grid-template-columns:1fr 1fr">
+      <div style="grid-column:1/-1"><label>Name</label><input type="text" name="name" value="" placeholder="Production" required/></div>
+      <div style="grid-column:1/-1"><label>From Morpheus</label>
+        <select name="s3Source" class="hvp-select hvp-src"><option value="">None, type below</option>{{#each s3Options}}<option value="{{value}}">{{label}}</option>{{/each}}</select></div>
+      <div class="hvp-f-endpoint"><label>Endpoint</label><input type="text" name="endpoint" value="" placeholder="Empty for AWS"/></div>
+      <div class="hvp-f-region"><label>Region</label><input type="text" name="region" value="" placeholder="us-east-1"/></div>
+      <div class="hvp-f-bucket"><label>Bucket</label><input type="text" name="bucket" value=""/></div>
+      <div><label>Folder (optional)</label><input type="text" name="prefix" value=""/></div>
+      <div class="hvp-f-keys"><label>Access key</label><input type="text" name="accessKey" value=""/></div>
+      <div class="hvp-f-keys"><label>Secret key</label><input type="password" name="secretKey" placeholder="" autocomplete="new-password"/></div>
+      <div style="grid-column:1/-1"><label class="hvp-check"><input type="checkbox" name="skipTls" /> Skip TLS check</label></div>
+    </div>
+    <div class="hvp-popbtns"><button type="submit" class="hvp-btn hvp-btn-primary">Save and test</button><button type="button" class="hvp-btn hvp-btn-secondary" popovertarget="hvp-s3-new" popovertargetaction="hide">Cancel</button></div>
+  </form>
+  {{/if}}
+</div></div>
+
+<div class="hvp-sub hvp-sub-git"><div class="hvp-card">
+  <div class="hvp-bar"><h4>Git repositories</h4><span class="hvp-muted">YAML copy of every object, no Secrets</span><span class="hvp-spacer"></span>
+    {{#if canManage}}<button type="button" class="hvp-btn hvp-btn-primary" popovertarget="hvp-git-new">Add repository</button>{{/if}}</div>
+  {{#if hasGitRows}}
+  <table class="hvp-table">
+    <thead><tr><th>Name</th><th>Repository</th><th>Status</th><th>Used by</th><th></th></tr></thead>
+    <tbody>
+    {{#each gitRows}}
+    <tr>
+      <td><span class="hvp-name">{{name}}</span></td>
+      <td class="hvp-muted">{{where}}</td>
+      <td><span class="hvp-chip hvp-chip-{{chip}}">{{status}}</span>{{#if failed}}<span class="hvp-small">{{message}}</span>{{else}}{{#if at}}<span class="hvp-small">{{at}}</span>{{/if}}{{/if}}</td>
+      <td class="hvp-muted">{{used}}</td>
+      <td>{{#if ../canManage}}<div class="hvp-actions">
+        <form method="post" action="/plugin/hks-velero/test-git"><input type="hidden" name="{{../csrfParam}}" value="{{../csrfToken}}"/><input type="hidden" name="integrationId" value="{{../integrationId}}"/><input type="hidden" name="targetId" value="{{id}}"/><button type="submit" class="hvp-btn hvp-btn-secondary">Test</button></form>
+        <button type="button" class="hvp-btn hvp-btn-secondary" popovertarget="hvp-git-{{id}}">Edit</button>
+        <button type="button" class="hvp-btn hvp-btn-danger" popovertarget="hvp-git-rm-{{id}}">Remove</button>
+      </div>
+      <form id="hvp-git-{{id}}" popover class="hvp-pop hvp-popwide" method="post" action="/plugin/hks-velero/git-settings" autocomplete="off">
+        <h3>Edit {{name}}</h3><input type="hidden" name="targetId" value="{{id}}"/>
+    <input type="hidden" name="{{../csrfParam}}" value="{{../csrfToken}}"/><input type="hidden" name="integrationId" value="{{../integrationId}}"/>
+    <div class="hvp-form" style="grid-template-columns:1fr 1fr">
+      <div style="grid-column:1/-1"><label>Name</label><input type="text" name="name" value="{{name}}" placeholder="Production" required/></div>
+      <div style="grid-column:1/-1"><label>From Morpheus</label>
+        <select name="gitIntegration" class="hvp-select"><option value="">None, type below</option>{{#each options}}<option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select></div>
+      <div style="grid-column:1/-1"><label>Repository {{cfg.url}}</label><input type="text" name="gitUrl" value="{{cfg.url}}" placeholder="https://github.com/org/repo.git"/></div>
+      <div><label>Branch (optional)</label><input type="text" name="gitBranch" value="{{cfg.branch}}" placeholder="main"/></div>
+      <div><label>Folder (optional)</label><input type="text" name="gitFolder" value="{{cfg.folder}}"/></div>
+      <div><label>User</label><input type="text" name="gitUser" value="{{cfg.user}}" placeholder="git"/></div>
+      <div><label>Token</label><input type="password" name="gitToken" placeholder="{{#if hasSecret}}Saved{{/if}}" autocomplete="new-password"/></div>
+      <div style="grid-column:1/-1"><label class="hvp-check"><input type="checkbox" name="gitSkipTls" {{#if skipTls}}checked{{/if}}/> Skip TLS check</label></div>
+    </div>
+        <div class="hvp-popbtns"><button type="submit" class="hvp-btn hvp-btn-primary">Save and test</button><button type="button" class="hvp-btn hvp-btn-secondary" popovertarget="hvp-git-{{id}}" popovertargetaction="hide">Cancel</button></div>
+      </form>
+      <form id="hvp-git-rm-{{id}}" popover class="hvp-pop" method="post" action="/plugin/hks-velero/target-delete">
+        <h3>Remove {{name}}?</h3><p style="margin-top:8px">Files in the repository stay.</p>
+        <input type="hidden" name="{{../csrfParam}}" value="{{../csrfToken}}"/><input type="hidden" name="integrationId" value="{{../integrationId}}"/><input type="hidden" name="kind" value="git"/><input type="hidden" name="targetId" value="{{id}}"/>
+        <div class="hvp-popbtns"><button type="submit" class="hvp-btn hvp-btn-danger">Remove</button><button type="button" class="hvp-btn hvp-btn-secondary" popovertarget="hvp-git-rm-{{id}}" popovertargetaction="hide">Cancel</button></div>
+      </form>{{/if}}</td>
+    </tr>
+    {{/each}}
+    </tbody>
+  </table>
+  {{else}}
+  <div class="hvp-empty">No repository yet. Press Add repository.</div>
+  {{/if}}
+  {{#if canManage}}
+  <form id="hvp-git-new" popover class="hvp-pop hvp-popwide" method="post" action="/plugin/hks-velero/git-settings" autocomplete="off">
+    <h3>Add repository</h3>
+    <input type="hidden" name="{{csrfParam}}" value="{{csrfToken}}"/><input type="hidden" name="integrationId" value="{{integrationId}}"/>
+    <div class="hvp-form" style="grid-template-columns:1fr 1fr">
+      <div style="grid-column:1/-1"><label>Name</label><input type="text" name="name" value="" placeholder="Production" required/></div>
+      <div style="grid-column:1/-1"><label>From Morpheus</label>
+        <select name="gitIntegration" class="hvp-select"><option value="">None, type below</option>{{#each gitOptions}}<option value="{{value}}">{{label}}</option>{{/each}}</select></div>
+      <div style="grid-column:1/-1"><label>Repository </label><input type="text" name="gitUrl" value="" placeholder="https://github.com/org/repo.git"/></div>
+      <div><label>Branch (optional)</label><input type="text" name="gitBranch" value="" placeholder="main"/></div>
+      <div><label>Folder (optional)</label><input type="text" name="gitFolder" value=""/></div>
+      <div><label>User</label><input type="text" name="gitUser" value="" placeholder="git"/></div>
+      <div><label>Token</label><input type="password" name="gitToken" placeholder="" autocomplete="new-password"/></div>
+      <div style="grid-column:1/-1"><label class="hvp-check"><input type="checkbox" name="gitSkipTls" /> Skip TLS check</label></div>
+    </div>
+    <div class="hvp-popbtns"><button type="submit" class="hvp-btn hvp-btn-primary">Save and test</button><button type="button" class="hvp-btn hvp-btn-secondary" popovertarget="hvp-git-new" popovertargetaction="hide">Cancel</button></div>
+  </form>
+  {{/if}}
+</div></div>
+
+<div class="hvp-sub hvp-sub-activity"><div class="hvp-card">
+  <div class="hvp-bar"><h4>Recent backups</h4><span class="hvp-spacer"></span><a class="hvp-btn hvp-btn-secondary" href="/admin/integrations/{{integrationId}}">Reload</a></div>
+  {{#if hasRecent}}
+  <table class="hvp-table">
+    <thead><tr><th>Cluster</th><th>Backup</th><th>Status</th><th>Items</th><th>Started</th><th>Took</th><th>Errors</th></tr></thead>
+    <tbody>
+    {{#each recent}}
+    <tr><td><a href="{{clusterUrl}}">{{cluster}}</a></td><td><span class="hvp-name">{{name}}</span></td><td><span class="hvp-chip hvp-chip-{{chip}}">{{phase}}</span></td><td class="hvp-muted">{{items}}</td><td class="hvp-muted">{{when}}</td><td class="hvp-muted">{{took}}</td><td>{{errors}}</td></tr>
+    {{/each}}
+    </tbody>
+  </table>
+  {{else}}
+  <div class="hvp-empty">No backups yet.</div>
+  {{/if}}
+  {{#if hasSchedules}}
+  <div class="hvp-bar" style="margin-top:22px"><h4>Schedules</h4></div>
+  <table class="hvp-table">
+    <thead><tr><th>Cluster</th><th>Name</th><th>When</th><th>Keep</th><th>Last</th><th>Next</th></tr></thead>
+    <tbody>
+    {{#each schedules}}
+    <tr><td><a href="{{clusterUrl}}">{{cluster}}</a></td><td><span class="hvp-name">{{name}}</span>{{#if paused}} <span class="hvp-chip hvp-chip-unknown">Paused</span>{{/if}}</td><td>{{when}}</td><td class="hvp-muted">{{keep}}</td><td class="hvp-muted">{{last}}</td><td class="hvp-muted">{{next}}</td></tr>
+    {{/each}}
+    </tbody>
+  </table>
+  {{/if}}
+  <div class="hvp-bar" style="margin:22px 0 0"><h4>Live log</h4></div>
+  <pre class="hvp-log" id="hv-page-log" title="Click to resize">{{#if logText}}{{logText}}{{else}}Nothing yet.{{/if}}</pre>
+</div></div>
+
+</div>
+{{/if}}
+</div>

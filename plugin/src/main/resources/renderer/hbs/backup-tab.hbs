@@ -1,0 +1,509 @@
+<div class="hv-panel" id="hv-top" data-cluster="{{clusterId}}">
+<style>
+.hv-panel{--hv-ok:#2e9e6a;--hv-warn:#d4a017;--hv-bad:#d0464f;--hv-info:#2f7fc1;--hv-muted:#7d8a94;--hv-line:rgba(125,138,148,.35);--hv-accent:var(--hpe-color-text-primary,#01a982);--hv-sel:rgba(125,138,148,.14);max-width:100%;overflow-x:hidden}
+.hv-panel h3,.hv-panel h4{text-transform:none}
+.hv-panel h4{margin:0;font-size:13px;font-weight:600}
+.hv-panel>input[type=radio]{position:absolute;opacity:0;pointer-events:none;width:0;height:0}
+.hv-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 0}
+.hv-logo{font-weight:600;font-size:15px}
+.hv-muted{color:var(--hv-muted)}
+.hv-spacer{flex:1}
+.hv-flash{margin:8px 0}
+.hv-empty{padding:14px 16px;border:1px dashed var(--hv-line);border-radius:4px;margin:8px 0;color:var(--hv-muted)}
+.hv-chip{display:inline-block;padding:1px 7px;border-radius:3px;font-size:11px;font-weight:600;color:#fff;white-space:nowrap}
+.hv-chip-ok{background:var(--hv-ok)}.hv-chip-warn{background:var(--hv-warn)}.hv-chip-bad{background:var(--hv-bad)}.hv-chip-info{background:var(--hv-info)}.hv-chip-unknown{background:var(--hv-muted)}
+.hv-summary{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 4px}
+.hv-stat{padding:6px 12px;border:1px solid var(--hv-line);border-radius:4px;min-width:110px}
+.hv-stat b{display:block;font-size:18px}
+.hv-ok{color:var(--hv-ok)}.hv-bad{color:var(--hv-bad)}.hv-warn{color:var(--hv-warn)}
+.hv-table{margin-bottom:6px}
+.hv-table td,.hv-table th{vertical-align:middle!important}
+.hv-table th{white-space:nowrap}
+.hv-actions{display:flex;gap:6px;align-items:center;flex-wrap:nowrap}
+.hv-panel form:not([popover]){margin:0}
+.hv-panel form.hv-inline{display:flex}
+.hv-panel .btn.hv-act{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;width:110px;height:28px;padding:0 10px;margin:0;font-size:12px;line-height:1;text-transform:none;white-space:nowrap;cursor:pointer;text-decoration:none;border-radius:9999px}
+.hv-panel .btn.hv-wide{width:140px}
+.hv-cell{display:block;margin:0;font-weight:normal;cursor:pointer}.hv-shut{display:none}
+.hv-click:hover td{background:rgba(125,138,148,.08)}.hv-click b{color:var(--hv-accent);white-space:nowrap}
+tr.hv-detail{display:none}
+tr.hv-detail>td{padding:0 0 12px 0!important;border-top:0!important;background:transparent!important}
+.hv-box{padding:12px 14px;border:1px solid var(--hv-line);border-radius:4px;background:rgba(125,138,148,.04)}
+.hv-kv{display:grid;grid-template-columns:120px 1fr 120px 1fr;gap:4px 12px;font-size:12px;margin:10px 0 0}
+.hv-kv span:nth-child(odd){color:var(--hv-muted)}
+.hv-kv2{grid-template-columns:120px 1fr}
+.hv-tabs{display:flex;gap:2px;border-bottom:1px solid var(--hv-line);margin:14px 0 10px}
+.hv-tabs label{margin:0 0 -1px;padding:7px 14px;font-weight:600;font-size:13px;cursor:pointer;border:1px solid transparent;border-radius:4px 4px 0 0;color:var(--hv-muted)}
+.hv-tabs label:hover{color:inherit}
+.hv-tabs label span{font-weight:normal;margin-left:4px}
+.hv-sub{display:none}
+#hv-s-backups:checked~.hv-tabs label[for=hv-s-backups],#hv-s-schedules:checked~.hv-tabs label[for=hv-s-schedules],#hv-s-restores:checked~.hv-tabs label[for=hv-s-restores],
+#hv-s-git:checked~.hv-tabs label[for=hv-s-git],#hv-s-other:checked~.hv-tabs label[for=hv-s-other]{color:inherit;border-color:var(--hv-line) var(--hv-line) transparent;background:rgba(125,138,148,.06)}
+#hv-s-backups:checked~.hv-subs .hv-sub-backups,#hv-s-schedules:checked~.hv-subs .hv-sub-schedules,#hv-s-restores:checked~.hv-subs .hv-sub-restores,
+#hv-s-git:checked~.hv-subs .hv-sub-git,#hv-s-other:checked~.hv-subs .hv-sub-other{display:block}
+/* inner tabs of an open backup */
+.hv-itabs{display:flex;gap:4px;margin:12px 0 0;border-bottom:1px solid var(--hv-line)}
+.hv-panel a.hv-itab{display:inline-block;margin:0 0 -1px;padding:7px 14px;border:0;border-bottom:2px solid transparent;border-radius:0;background:none;box-shadow:none;font-weight:600;font-size:12px;color:inherit;opacity:.65;text-decoration:none;cursor:pointer}
+.hv-panel a.hv-itab:hover{opacity:1}
+.hv-panel a.hv-itab.hv-on{opacity:1;border-bottom-color:var(--hv-accent)}
+.hv-ipanel{display:none;padding-top:10px}
+.hv-ipanel.hv-on{display:block}
+.hv-loading{color:var(--hv-muted);padding:8px 0}
+.hv-logbox{font:11.5px/1.55 monospace;max-height:380px;overflow:auto;white-space:pre-wrap;word-break:break-word;padding:6px 10px;border-radius:4px;background:#1f2428;color:#d6dde2}
+.hv-logbox .hv-lw{color:#e0b341}.hv-logbox .hv-le{color:#ff7b72}
+.hv-logbox.hv-only div:not(.hv-lw):not(.hv-le){display:none}
+.hv-cwrap{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:10px;align-items:start}
+.hv-side{border:1px solid var(--hv-line);border-radius:4px;padding:8px 10px;max-height:520px;overflow:auto;font-size:12px}
+.hv-side h4{margin:0 0 6px}
+.hv-side .hv-objs{max-height:260px;overflow:auto;margin:6px 0}
+.hv-side .hv-objs label{display:flex;gap:6px;align-items:center;margin:0;padding:3px 0;font-weight:normal;cursor:pointer;border-bottom:1px solid rgba(125,138,148,.15)}
+.hv-side .hv-objs input,.hv-pickedlist input{margin:0;accent-color:#01a982}
+.hv-side .hv-sidebtns{display:flex;gap:12px}
+.hv-side a,.hv-zoom a{cursor:pointer;text-decoration:none;color:var(--hv-accent)}
+.hv-pickedlist{margin-top:10px;padding-top:8px;border-top:1px solid var(--hv-line)}
+.hv-pickedlist .hv-pk{display:flex;gap:6px;align-items:center;padding:2px 0}
+.hv-pickedlist .hv-pk span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hv-zoom{display:inline-flex;gap:6px;align-items:center;font-size:12px}
+.hv-zoom a{display:inline-flex;justify-content:center;align-items:center;min-width:30px;height:24px;padding:0 6px;border:1px solid var(--hv-line);border-radius:3px}
+.hv-zl{min-width:38px;text-align:center;color:var(--hv-muted)}
+.hv-node.hv-act{border-color:var(--hv-accent);box-shadow:0 0 0 1px var(--hv-accent)}
+.hv-legend{display:flex;flex-wrap:wrap;gap:14px;font-size:11px;margin:0 0 6px;align-items:center}
+.hv-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.hv-flow{position:relative;overflow:auto;max-height:520px;min-height:120px;border:1px solid var(--hv-line);border-radius:4px;padding:0}
+.hv-stage{position:relative}
+.hv-edges{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+.hv-edges path{fill:none;stroke:currentColor;stroke-opacity:.35;stroke-width:1.3}
+.hv-node{position:absolute;box-sizing:border-box;width:250px;height:54px;display:flex;align-items:center;gap:8px;padding:0 8px 0 6px;border:1px solid var(--hv-line);border-left:5px solid rgba(125,138,148,.6);border-radius:5px;background:rgba(125,138,148,.08);cursor:pointer;overflow:hidden}
+.hv-node:hover{border-color:var(--hv-accent)}
+.hv-node.hv-sel{border-color:var(--hv-accent);box-shadow:0 0 0 1px var(--hv-accent);background:rgba(1,169,130,.10)}
+.hv-node .hv-badge{flex:0 0 42px;text-align:center;font-size:10px;font-weight:700;padding:3px 0;border-radius:3px;background:rgba(125,138,148,.22)}
+.hv-node .hv-nm{flex:1;min-width:0}
+.hv-node .hv-nm b{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hv-node .hv-nm span{display:block;font-size:11px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hv-node input[type=checkbox]{margin:0;flex:0 0 auto;accent-color:#01a982;cursor:pointer}
+.hv-node .hv-fold{flex:0 0 auto;font-size:11px;opacity:.75}
+.hv-node.hv-root{cursor:default}
+.hv-k-work{border-left-color:#01a982!important;background:#01a982}.hv-k-conf{border-left-color:#d4a017!important;background:#d4a017}
+.hv-k-net{border-left-color:#2f7fc1!important;background:#2f7fc1}.hv-k-stor{border-left-color:#8f7fc7!important;background:#8f7fc7}
+.hv-k-acc{border-left-color:#7d8a94!important;background:#7d8a94}.hv-k-ns{border-left-color:var(--hv-accent)!important}
+.hv-node.hv-k-work,.hv-node.hv-k-conf,.hv-node.hv-k-net,.hv-node.hv-k-stor,.hv-node.hv-k-acc{background:rgba(125,138,148,.08)}
+.hv-node.hv-sel.hv-k-work,.hv-node.hv-sel.hv-k-conf,.hv-node.hv-sel.hv-k-net,.hv-node.hv-sel.hv-k-stor,.hv-node.hv-sel.hv-k-acc{background:rgba(1,169,130,.10)}
+.hv-pickbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+.hv-panel input.hv-filter,.hv-panel input.hv-target{display:inline-block!important;box-sizing:border-box!important;height:28px!important;padding:2px 8px!important;margin:0!important;border:1px solid var(--hv-line)!important;border-radius:3px!important;background:transparent!important;color:inherit!important;font-size:12px!important}
+.hv-panel input.hv-filter{width:260px!important}
+.hv-panel input.hv-target{width:200px!important}
+.hv-pickbar .hv-check{display:inline-flex!important;align-items:center;gap:4px}
+tr.hv-detail>td>.hv-box{max-width:100%;box-sizing:border-box;overflow:hidden}
+.hv-filter::placeholder,.hv-target::placeholder{color:var(--hv-muted);font-style:italic}
+.hv-cmp{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.hv-list{font:12px/1.6 monospace;max-height:16em;overflow:auto;margin:4px 0 0;padding:4px 8px;border:1px solid var(--hv-line);border-radius:4px;white-space:pre-wrap;word-break:break-word}
+/* dialogs */
+.hv-pop{position:fixed;inset:0;margin:auto;width:min(480px,92vw);height:fit-content;max-height:90vh;overflow:auto;box-sizing:border-box;padding:16px;border:1px solid var(--hv-line);border-radius:6px;background:var(--hpe-color-background-front,#2b3036);color:var(--hpe-color-text-default,#e6eaee);box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.hv-pop h4{font-size:15px;margin:0 0 10px}
+.hv-pop p{margin:0 0 8px}
+.hv-pop::backdrop{background:rgba(0,0,0,.4)}
+.hv-pop label.hv-field{display:block;font-size:11px;text-transform:uppercase;margin:10px 0 3px;color:var(--hv-muted)}
+.hv-pop input[type=text],.hv-pop input[type=number],.hv-pop select{width:100%;box-sizing:border-box;background:#fff!important;color:#1f2428!important;border:1px solid #8a959f!important;height:30px;padding:2px 7px;border-radius:3px}
+.hv-pop input[type=number]{width:110px}
+.hv-pop input::placeholder{color:#8a959f!important;font-style:italic}
+.hv-check{display:block;margin:6px 0;font-weight:normal;cursor:pointer}
+.hv-nslist{max-height:150px;overflow:auto;border:1px solid var(--hv-line);border-radius:4px;padding:4px 8px;margin-top:4px;columns:2}
+.hv-nslist label{display:block;margin:2px 0;font-weight:normal;cursor:pointer}
+.hv-popbtns{display:flex;gap:8px;margin-top:16px}
+.hv-pick{display:none}
+.hv-pop:has(input[value=picked]:checked) .hv-pick{display:block}
+.hv-cron{display:none}
+.hv-pop:has(option[value=custom]:checked) .hv-cron{display:block}
+.hv-live{margin:10px 0;padding:10px 12px;border:1px solid var(--hv-line);border-left:3px solid var(--hv-info);border-radius:4px}
+.hv-prog{height:4px;border-radius:2px;background:rgba(125,138,148,.2);margin:6px 0 4px;overflow:hidden}
+.hv-prog i{display:block;height:100%;background:var(--hv-info);transition:width .6s}
+.hv-log{font:11.5px/1.5 monospace;height:4.6em;overflow:auto;white-space:pre;margin:8px 0 0;padding:4px 8px;border-radius:4px;background:#1f2428;color:#d6dde2;cursor:pointer}
+.hv-log.hv-big{height:22em}
+.hv-small{font-size:12px}
+{{{panelCss}}}
+</style>
+
+<div class="hv-bar">
+  <span class="hv-logo">Velero backup</span>
+  {{#unless hasError}}
+  {{#if ready}}<span class="hv-chip hv-chip-ok">Velero running</span>{{else}}<span class="hv-chip hv-chip-info">Velero starting</span>{{/if}}
+  <span class="hv-chip hv-chip-{{locationChip}}">{{locationText}}</span>
+  <span class="hv-muted">{{version}}{{#if locationWhere}} · {{locationWhere}}{{/if}}</span>
+  {{/unless}}
+  <span class="hv-spacer"></span>
+  <span class="hv-muted">{{loadedAt}} UTC · <a href="/infrastructure/clusters/{{clusterId}}?r={{loadedAt}}#!hks-velero-tab">reload</a> · access: <b>{{access}}</b></span>
+</div>
+
+{{#if hasFlash}}<div class="alert alert-{{flashLevel}} hv-flash">{{flashText}}</div>{{/if}}
+{{#if hasError}}<div class="hv-empty">{{error}}</div>{{/if}}
+
+{{#unless hasError}}
+{{#if needsUpdate}}<div class="alert alert-info hv-flash">Velero {{bundled}} is available. Update it on Administration > Integrations > HKS Velero.</div>{{/if}}
+
+<div class="hv-summary">
+  <div class="hv-stat"><span class="hv-muted">Backups</span><b>{{total}}</b></div>
+  <div class="hv-stat"><span class="hv-muted">Succeeded</span><b class="hv-ok">{{succeeded}}</b></div>
+  <div class="hv-stat"><span class="hv-muted">Failed</span><b class="hv-bad">{{failed}}</b></div>
+  <div class="hv-stat"><span class="hv-muted">Last good</span><b>{{lastGood}}</b></div>
+  <div class="hv-stat"><span class="hv-muted">Next run</span><b>{{nextRun}}</b></div>
+</div>
+
+{{#if running}}
+<div class="hv-live" id="hv-tab-live" data-cluster="{{clusterId}}">
+  <b>Running now</b>
+  <div id="hv-live-rows"></div>
+  <pre class="hv-log" id="hv-live-log" title="Click to resize">Waiting for Velero...</pre>
+</div>
+{{/if}}
+
+<input type="radio" name="hv-sub" id="hv-s-backups" {{#if subBackups}}checked{{/if}}/>
+<input type="radio" name="hv-sub" id="hv-s-schedules" {{#if subSchedules}}checked{{/if}}/>
+<input type="radio" name="hv-sub" id="hv-s-restores" {{#if subRestores}}checked{{/if}}/>
+<input type="radio" name="hv-sub" id="hv-s-git" {{#if subGit}}checked{{/if}}/>
+<input type="radio" name="hv-sub" id="hv-s-other" {{#if subOther}}checked{{/if}}/>
+<input type="radio" name="hv-b" id="hv-b-none" checked/>
+{{#each backups}}<input type="radio" name="hv-b" id="hv-b-{{index}}" data-row="hv-bd-{{index}}"/>{{/each}}
+<input type="radio" name="hv-r" id="hv-r-none" checked/>
+{{#each restores}}<input type="radio" name="hv-r" id="hv-r-{{index}}" data-row="hv-rd-{{index}}"/>{{/each}}
+<input type="radio" name="hv-c" id="hv-c-none" checked/>
+{{#each schedules}}<input type="radio" name="hv-c" id="hv-c-{{index}}"/>{{/each}}
+
+<div class="hv-tabs">
+  <label for="hv-s-backups">Backups<span>{{total}}</span></label>
+  <label for="hv-s-schedules">Schedules<span>{{scheduleCount}}</span></label>
+  <label for="hv-s-restores">Restores<span>{{restoreCount}}</span></label>
+  <label for="hv-s-git">Git copy</label>
+  <label for="hv-s-other">Other clusters</label>
+</div>
+
+<div class="hv-subs">
+
+<div class="hv-sub hv-sub-backups">
+  <div class="hv-bar" style="padding-top:0">
+    {{#unless canBackup}}<span class="hv-muted">{{blockedReason}}</span>{{/unless}}
+    <span class="hv-spacer"></span>
+    {{#if canBackup}}<button type="button" class="btn btn-primary hv-act" popovertarget="hv-pop-backup">Back up now</button>{{/if}}
+  </div>
+  {{#if hasBackups}}
+  <table class="table table-condensed hv-table">
+    <thead><tr><th>Name</th><th>Namespaces</th><th>Status</th><th>Items</th><th>Started</th><th>Expires</th><th>Warnings</th><th>Errors</th></tr></thead>
+    <tbody>
+    {{#each backups}}
+    <tr class="hv-click hv-brow-{{index}}">
+      <td><label for="hv-b-{{index}}" class="hv-cell hv-bopen-{{index}}"><b>{{name}}</b>{{#if fromOther}} <span class="hv-chip hv-chip-unknown">{{fromOther}}</span>{{/if}}</label><label for="hv-b-none" class="hv-cell hv-shut hv-bshut-{{index}}"><b>{{name}}</b>{{#if fromOther}} <span class="hv-chip hv-chip-unknown">{{fromOther}}</span>{{/if}}</label></td>
+      <td><label for="hv-b-{{index}}" class="hv-cell hv-bopen-{{index}}">{{namespaces}}</label><label for="hv-b-none" class="hv-cell hv-shut hv-bshut-{{index}}">{{namespaces}}</label></td>
+      <td><span class="hv-chip hv-chip-{{chip}}">{{phase}}</span></td>
+      <td class="hv-muted">{{items}}</td>
+      <td class="hv-muted">{{when}}</td>
+      <td class="hv-muted">{{expires}}</td>
+      <td>{{#if warnings}}<span class="hv-warn">{{warnings}}</span>{{else}}<span class="hv-muted">0</span>{{/if}}</td>
+      <td>{{#if errors}}<span class="hv-bad">{{errors}}</span>{{else}}<span class="hv-muted">0</span>{{/if}}</td>
+    </tr>
+    <tr class="hv-detail hv-bd-{{index}}"><td colspan="8"><div class="hv-box" data-cluster="{{../clusterId}}" data-backup="{{name}}">
+      <div class="hv-bar" style="padding:0">
+        <span class="hv-chip hv-chip-{{chip}}">{{phase}}</span>{{#if schedule}}<span class="hv-muted">schedule {{schedule}}</span>{{/if}}{{#if by}}<span class="hv-muted">by {{by}}</span>{{/if}}
+        <span class="hv-spacer"></span>
+        {{#if ../canBackup}}{{#unless running}}{{#unless deleting}}
+        <div class="hv-actions">
+          <button type="button" class="btn btn-primary hv-act" popovertarget="hv-pop-restore-{{index}}">Restore</button>
+          {{#unless fromOther}}<button type="button" class="btn btn-danger hv-act" popovertarget="hv-pop-delete-{{index}}">Delete</button>{{/unless}}
+        </div>
+        {{/unless}}{{/unless}}{{/if}}
+      </div>
+      <div class="hv-kv">
+        <span>Items</span><span>{{items}}</span>
+        <span>Took</span><span>{{took}}</span>
+        <span>Volume data</span><span>{{volumes}}</span>
+        <span>Expires</span><span>{{expires}}</span>
+        <span>Location</span><span>{{location}}</span>
+        <span>Warnings</span><span>{{warnings}} / errors {{errors}}</span>
+        {{#if failure}}<span>Failed because</span><span class="hv-bad">{{failure}}</span>{{/if}}
+      </div>
+      {{#unless running}}
+      <div class="hv-itabs">
+        <a href="#" role="tab" class="hv-itab hv-on" data-show="contents">Contents</a>
+        <a href="#" role="tab" class="hv-itab" data-show="changes">Changes</a>
+        <a href="#" role="tab" class="hv-itab" data-show="log">Log</a>
+      </div>
+      <div class="hv-ipanel hv-on" data-panel="contents">
+        <form class="hv-pickform" method="post" action="/plugin/hks-velero/restore-items">
+          <input type="hidden" name="{{../csrfParam}}" value="{{../csrfToken}}"/><input type="hidden" name="clusterId" value="{{../clusterId}}"/><input type="hidden" name="backup" value="{{name}}"/>
+          <div class="hv-pickbar" style="margin:0 0 8px">
+            <input type="text" class="hv-filter" placeholder="Search objects" autocomplete="off"/><span class="hv-muted hv-count"></span>
+            <span class="hv-spacer"></span>
+            <span class="hv-zoom"><a href="#" data-zoom="out" title="Zoom out">-</a><span class="hv-zl">100%</span><a href="#" data-zoom="in" title="Zoom in">+</a><a href="#" data-zoom="fit">Fit</a></span>
+          </div>
+          <div class="hv-legend"><span><i class="hv-k-work"></i>Workloads</span><span><i class="hv-k-conf"></i>Config</span><span><i class="hv-k-net"></i>Network</span><span><i class="hv-k-stor"></i>Storage</span><span><i class="hv-k-acc"></i>Access</span></div>
+          <div class="hv-cwrap">
+            <div class="hv-flow"><div class="hv-loading">Loading...</div></div>
+            <div class="hv-side">
+              <div class="hv-sidelist"><p class="hv-muted">Click a namespace to open it, then a kind to see its objects.</p></div>
+              <div class="hv-pickedlist"></div>
+            </div>
+          </div>
+          <div class="hv-picked"></div>
+          {{#if ../canBackup}}
+          <div class="hv-pickbar">
+            <span class="hv-muted hv-selected">Nothing picked</span>
+            <span class="hv-spacer"></span>
+            <input type="text" name="target" class="hv-target" pattern="[a-z0-9]([\-a-z0-9]*[a-z0-9])?" maxlength="63" placeholder="Into new namespace"/>
+            <label class="hv-check" style="margin:0"><input type="checkbox" name="overwrite"/> Overwrite</label>
+            <button type="submit" class="btn btn-primary hv-act hv-wide">Restore picked</button>
+          </div>
+          {{/if}}
+        </form>
+      </div>
+      <div class="hv-ipanel" data-panel="changes"><div class="hv-loading">Loading...</div></div>
+      <div class="hv-ipanel" data-panel="log" data-kind="backup"><div class="hv-loading">Loading...</div></div>
+      {{/unless}}
+      {{#if ../canBackup}}
+      <form id="hv-pop-restore-{{index}}" popover class="hv-pop" method="post" action="/plugin/hks-velero/restore">
+        <h4>Restore {{name}}</h4>
+        <input type="hidden" name="{{../csrfParam}}" value="{{../csrfToken}}"/>
+        <input type="hidden" name="clusterId" value="{{../clusterId}}"/>
+        <input type="hidden" name="backup" value="{{name}}"/>
+        <label class="hv-check"><input type="radio" name="scope" value="all" checked/> Everything</label>
+        <label class="hv-check"><input type="radio" name="scope" value="picked"/> Pick namespaces</label>
+        <div class="hv-pick">
+          <div class="hv-nslist">{{#if namespaceList}}{{#each namespaceList}}<label><input type="checkbox" name="namespace" value="{{this}}"/> {{this}}</label>{{/each}}{{else}}{{#each ../namespaces}}<label><input type="checkbox" name="namespace" value="{{this}}"/> {{this}}</label>{{/each}}{{/if}}</div>
+          <label class="hv-field" for="hv-r-target-{{index}}">Into new namespace (optional)</label>
+          <input type="text" id="hv-r-target-{{index}}" name="target" pattern="[a-z0-9]([\-a-z0-9]*[a-z0-9])?" maxlength="63"/>
+        </div>
+        <label class="hv-check"><input type="checkbox" name="overwrite"/> Overwrite existing</label>
+        <div class="hv-popbtns"><button type="submit" class="btn btn-primary hv-act">Restore</button><button type="button" class="btn btn-default hv-act" popovertarget="hv-pop-restore-{{index}}" popovertargetaction="hide">Cancel</button></div>
+      </form>
+      <form id="hv-pop-delete-{{index}}" popover class="hv-pop" method="post" action="/plugin/hks-velero/delete-backup">
+        <h4>Delete {{name}}?</h4>
+        <p>It is removed from storage too.</p>
+        <input type="hidden" name="{{../csrfParam}}" value="{{../csrfToken}}"/>
+        <input type="hidden" name="clusterId" value="{{../clusterId}}"/>
+        <input type="hidden" name="backup" value="{{name}}"/>
+        <label class="hv-field" for="hv-d-{{index}}">Type the name</label>
+        <input type="text" id="hv-d-{{index}}" name="confirm" required pattern="{{name}}" autocomplete="off"/>
+        <div class="hv-popbtns"><button type="submit" class="btn btn-danger hv-act">Delete</button><button type="button" class="btn btn-default hv-act" popovertarget="hv-pop-delete-{{index}}" popovertargetaction="hide">Cancel</button></div>
+      </form>
+      {{/if}}
+    </div></td></tr>
+    {{/each}}
+    </tbody>
+  </table>
+  {{else}}
+  <div class="hv-empty">No backups yet.</div>
+  {{/if}}
+</div>
+
+<div class="hv-sub hv-sub-schedules">
+  <div class="hv-bar" style="padding-top:0"><span class="hv-spacer"></span>
+    {{#if canBackup}}<button type="button" class="btn btn-primary hv-act" popovertarget="hv-pop-schedule">New schedule</button>{{/if}}
+  </div>
+  {{#if hasSchedules}}
+  <table class="table table-condensed hv-table">
+    <thead><tr><th>Name</th><th>When</th><th>Namespaces</th><th>Keep</th><th>Last</th><th>Next</th></tr></thead>
+    <tbody>
+    {{#each schedules}}
+    <tr class="hv-click hv-crow-{{index}}">
+      <td><label for="hv-c-{{index}}" class="hv-cell hv-copen-{{index}}"><b>{{name}}</b>{{#if paused}} <span class="hv-chip hv-chip-unknown">Paused</span>{{/if}}</label><label for="hv-c-none" class="hv-cell hv-shut hv-cshut-{{index}}"><b>{{name}}</b>{{#if paused}} <span class="hv-chip hv-chip-unknown">Paused</span>{{/if}}</label></td>
+      <td>{{when}}</td>
+      <td class="hv-muted">{{namespaces}}</td>
+      <td class="hv-muted">{{keep}}</td>
+      <td class="hv-muted">{{last}}</td>
+      <td class="hv-muted">{{next}}</td>
+    </tr>
+    <tr class="hv-detail hv-cd-{{index}}"><td colspan="6"><div class="hv-box">
+      <div class="hv-bar" style="padding:0">
+        <span class="hv-muted">{{cron}}</span>
+        <span class="hv-spacer"></span>
+        {{#if ../canBackup}}<div class="hv-actions">
+          <form class="hv-inline" method="post" action="/plugin/hks-velero/schedule-run"><input type="hidden" name="{{../csrfParam}}" value="{{../csrfToken}}"/><input type="hidden" name="clusterId" value="{{../clusterId}}"/><input type="hidden" name="schedule" value="{{name}}"/><button class="btn btn-primary hv-act" type="submit">Run now</button></form>
+          <button type="button" class="btn btn-default hv-act" popovertarget="hv-pop-sedit-{{index}}">Edit</button>
+          <form class="hv-inline" method="post" action="/plugin/hks-velero/schedule-pause"><input type="hidden" name="{{../csrfParam}}" value="{{../csrfToken}}"/><input type="hidden" name="clusterId" value="{{../clusterId}}"/><input type="hidden" name="schedule" value="{{name}}"/>
+            {{#if paused}}<input type="hidden" name="pause" value="false"/><button class="btn btn-default hv-act" type="submit">Resume</button>{{else}}<input type="hidden" name="pause" value="true"/><button class="btn btn-default hv-act" type="submit">Pause</button>{{/if}}</form>
+          <button type="button" class="btn btn-danger hv-act" popovertarget="hv-pop-srm-{{index}}">Remove</button>
+        </div>{{/if}}
+      </div>
+      <div class="hv-kv">
+        <span>Keep</span><span>{{keep}}</span>
+        <span>Volume data</span><span>{{#if volumes}}Yes{{else}}No{{/if}}</span>
+        <span>Last</span><span>{{last}}</span>
+        <span>Next</span><span>{{next}}</span>
+      </div>
+      <h4 style="margin-top:12px">Backups from this schedule</h4>
+      {{#if runs}}
+      <table class="table table-condensed hv-table hv-small" style="margin-top:4px">
+        <tbody>{{#each runs}}<tr><td>{{name}}</td><td><span class="hv-chip hv-chip-{{chip}}">{{phase}}</span></td><td class="hv-muted">{{items}}</td><td class="hv-muted">{{when}}</td></tr>{{/each}}</tbody>
+      </table>
+      {{else}}<p class="hv-muted" style="margin:4px 0 0">None yet.</p>{{/if}}
+      {{#if ../canBackup}}
+      <form id="hv-pop-sedit-{{index}}" popover class="hv-pop" method="post" action="/plugin/hks-velero/schedule-edit">
+        <h4>Edit {{name}}</h4>
+        <input type="hidden" name="{{../csrfParam}}" value="{{../csrfToken}}"/><input type="hidden" name="clusterId" value="{{../clusterId}}"/><input type="hidden" name="schedule" value="{{name}}"/>
+        <label class="hv-field">When</label>
+        <select name="preset"><option value="custom" selected>Cron line</option><option value="@hourly">Every hour</option><option value="0 1 * * *">Every day at 01:00 UTC</option><option value="0 1 * * 0">Every Sunday at 01:00 UTC</option></select>
+        <div class="hv-cron"><label class="hv-field">Cron (UTC)</label><input type="text" name="cron" value="{{cron}}"/></div>
+        <label class="hv-check"><input type="radio" name="scope" value="all" {{#unless picked}}checked{{/unless}}/> All namespaces</label>
+        <label class="hv-check"><input type="radio" name="scope" value="picked" {{#if picked}}checked{{/if}}/> Pick namespaces</label>
+        <div class="hv-pick"><div class="hv-nslist">{{#each ../namespaces}}<label><input type="checkbox" name="namespace" value="{{this}}"/> {{this}}</label>{{/each}}</div><p class="hv-muted hv-small">Now: {{namespaces}}</p></div>
+        <label class="hv-field">Keep days</label>
+        <input type="number" name="keepDays" value="{{keepDays}}" min="1" max="3650"/>
+        <label class="hv-check"><input type="checkbox" name="volumes" {{#if volumes}}checked{{/if}}/> Include volume data</label>
+        <div class="hv-popbtns"><button type="submit" class="btn btn-primary hv-act">Save</button><button type="button" class="btn btn-default hv-act" popovertarget="hv-pop-sedit-{{index}}" popovertargetaction="hide">Cancel</button></div>
+      </form>
+      <form id="hv-pop-srm-{{index}}" popover class="hv-pop" method="post" action="/plugin/hks-velero/schedule-remove">
+        <h4>Remove {{name}}?</h4><p>Its backups stay.</p>
+        <input type="hidden" name="{{../csrfParam}}" value="{{../csrfToken}}"/><input type="hidden" name="clusterId" value="{{../clusterId}}"/><input type="hidden" name="schedule" value="{{name}}"/>
+        <div class="hv-popbtns"><button type="submit" class="btn btn-danger hv-act">Remove</button><button type="button" class="btn btn-default hv-act" popovertarget="hv-pop-srm-{{index}}" popovertargetaction="hide">Cancel</button></div>
+      </form>
+      {{/if}}
+    </div></td></tr>
+    {{/each}}
+    </tbody>
+  </table>
+  {{else}}
+  <div class="hv-empty">No schedules.</div>
+  {{/if}}
+</div>
+
+<div class="hv-sub hv-sub-restores">
+  {{#if hasRestores}}
+  <table class="table table-condensed hv-table">
+    <thead><tr><th>Name</th><th>Type</th><th>From</th><th>What</th><th>Status</th><th>Started</th><th>Warnings</th><th>Errors</th></tr></thead>
+    <tbody>
+    {{#each restores}}
+    <tr class="hv-click hv-rrow-{{index}}">
+      <td><label for="hv-r-{{index}}" class="hv-cell hv-ropen-{{index}}"><b>{{name}}</b></label><label for="hv-r-none" class="hv-cell hv-shut hv-rshut-{{index}}"><b>{{name}}</b></label></td>
+      <td class="hv-muted">{{kind}}</td>
+      <td class="hv-muted">{{backup}}</td>
+      <td>{{what}}</td>
+      <td><span class="hv-chip hv-chip-{{chip}}">{{phase}}</span></td>
+      <td class="hv-muted">{{when}}</td>
+      <td>{{#if warnings}}<span class="hv-warn">{{warnings}}</span>{{else}}<span class="hv-muted">0</span>{{/if}}</td>
+      <td>{{#if errors}}<span class="hv-bad">{{errors}}</span>{{else}}<span class="hv-muted">0</span>{{/if}}</td>
+    </tr>
+    <tr class="hv-detail hv-rd-{{index}}"><td colspan="8"><div class="hv-box" data-cluster="{{../clusterId}}">
+      {{#if velero}}
+      <div class="hv-kv"><span>Items</span><span>{{items}}</span><span>From backup</span><span>{{backup}}</span>{{#if failure}}<span>Failed because</span><span class="hv-bad">{{failure}}</span>{{/if}}</div>
+      <div class="hv-ipanel hv-on" data-panel="log" data-kind="restore" data-name="{{name}}" style="padding-top:10px"><div class="hv-loading">Loading...</div></div>
+      {{else}}
+      <div class="hv-kv"><span>From</span><span>{{backup}}</span><span>By</span><span>{{by}}</span></div>
+      <div class="hv-cmp" style="margin-top:10px">
+        <div><h4>Restored ({{doneCount}})</h4><div class="hv-list">{{#each done}}{{this}}
+{{/each}}</div></div>
+        <div>{{#if hasSkipped}}<h4>Skipped, already there ({{skippedCount}})</h4><div class="hv-list">{{#each skipped}}{{this}}
+{{/each}}</div>{{/if}}{{#if hasFailed}}<h4 style="margin-top:8px">Failed</h4><div class="hv-list hv-bad">{{#each failed}}{{this}}
+{{/each}}</div>{{/if}}</div>
+      </div>
+      {{/if}}
+    </div></td></tr>
+    {{/each}}
+    </tbody>
+  </table>
+  {{else}}
+  <div class="hv-empty">No restores.</div>
+  {{/if}}
+</div>
+
+<div class="hv-sub hv-sub-git">
+  <p class="hv-muted" style="margin:0 0 6px">Every object as a YAML file in Git, to see what changed and when. No volume data, no Secrets.</p>
+  <div class="hv-bar" style="padding-top:0">
+    {{#if gitTested}}<span class="hv-chip hv-chip-ok">Git ready</span>{{else}}<span class="hv-chip hv-chip-unknown">Not set</span>{{/if}}
+    {{#if gitWeb}}<a href="{{gitWeb}}" target="_blank" rel="noopener">{{gitUrl}}</a><span class="hv-muted hv-small">sign in there to see a private repository</span>{{/if}}
+    <span class="hv-spacer"></span>
+    {{#if canGit}}
+    <form class="hv-inline" method="post" action="/plugin/hks-velero/git-export"><input type="hidden" name="{{csrfParam}}" value="{{csrfToken}}"/><input type="hidden" name="clusterId" value="{{clusterId}}"/><button type="submit" class="btn btn-primary hv-act">Push now</button></form>
+    <button type="button" class="btn btn-default hv-act" popovertarget="hv-pop-gitsched">Schedule</button>
+    {{#if hasGitCopy}}<button type="button" class="btn btn-default hv-act" popovertarget="hv-pop-gitrestore">Restore</button>{{/if}}
+    {{/if}}
+  </div>
+  {{#if gitBlocked}}<div class="hv-empty">{{gitBlocked}}</div>{{/if}}
+  {{#unless gitBlocked}}
+  <div class="hv-kv hv-kv2">
+    <span>Schedule</span><span>{{gitWhen}}{{#if gitNext}} · next {{gitNext}}{{/if}}</span>
+  </div>
+  <h4 style="margin-top:14px">Pushes</h4>
+  {{#if hasGitRuns}}
+  <table class="table table-condensed hv-table" style="margin-top:4px">
+    <thead><tr><th>When</th><th>Result</th><th>Commit</th><th>Started by</th></tr></thead>
+    <tbody>{{#each gitRuns}}<tr><td class="hv-muted">{{when}}</td><td class="{{#unless ok}}hv-bad{{/unless}}">{{result}}</td><td>{{#if link}}<a href="{{link}}" target="_blank" rel="noopener">{{commit}}</a>{{else}}{{commit}}{{/if}}</td><td class="hv-muted">{{why}}</td></tr>{{/each}}</tbody>
+  </table>
+  {{else}}<p class="hv-muted">No pushes yet. Press Push now.</p>{{/if}}
+  {{/unless}}
+</div>
+
+<div class="hv-sub hv-sub-other">
+  <p class="hv-muted" style="margin:0 0 6px">Backups other clusters keep in this bucket. Show them to restore one here.</p>
+  <div class="hv-others" data-cluster="{{clusterId}}"><div class="hv-loading">Loading...</div></div>
+</div>
+
+</div>
+
+{{#if canBackup}}
+<form id="hv-pop-backup" popover class="hv-pop" method="post" action="/plugin/hks-velero/backup">
+  <h4>Back up now</h4>
+  <p class="hv-muted hv-small">Goes to {{s3Where}}</p>
+  <input type="hidden" name="{{csrfParam}}" value="{{csrfToken}}"/>
+  <input type="hidden" name="clusterId" value="{{clusterId}}"/>
+  <label class="hv-check"><input type="radio" name="scope" value="all" checked/> All namespaces</label>
+  <label class="hv-check"><input type="radio" name="scope" value="picked"/> Pick namespaces</label>
+  <div class="hv-pick"><div class="hv-nslist">{{#each namespaces}}<label><input type="checkbox" name="namespace" value="{{this}}"/> {{this}}</label>{{/each}}</div></div>
+  <label class="hv-field" for="hv-b-keep">Keep days</label>
+  <input type="number" id="hv-b-keep" name="keepDays" value="30" min="1" max="3650"/>
+  <label class="hv-check"><input type="checkbox" name="volumes"/> Include volume data</label>
+  {{#if gitTested}}<label class="hv-check"><input type="checkbox" name="git"/> Also push a Git copy ({{gitName}})</label>{{/if}}
+  <label class="hv-field" for="hv-b-name">Name (optional)</label>
+  <input type="text" id="hv-b-name" name="name" pattern="[a-z0-9]([\-a-z0-9]*[a-z0-9])?" maxlength="63"/>
+  <div class="hv-popbtns"><button type="submit" class="btn btn-primary hv-act">Start</button><button type="button" class="btn btn-default hv-act" popovertarget="hv-pop-backup" popovertargetaction="hide">Cancel</button></div>
+</form>
+
+<form id="hv-pop-schedule" popover class="hv-pop" method="post" action="/plugin/hks-velero/schedule">
+  <h4>New schedule</h4>
+  <input type="hidden" name="{{csrfParam}}" value="{{csrfToken}}"/>
+  <input type="hidden" name="clusterId" value="{{clusterId}}"/>
+  <label class="hv-field" for="hv-s-preset">When</label>
+  <select id="hv-s-preset" name="preset">
+    <option value="@hourly">Every hour</option>
+    <option value="0 1 * * *" selected>Every day at 01:00 UTC</option>
+    <option value="0 1 * * 0">Every Sunday at 01:00 UTC</option>
+    <option value="custom">Cron line</option>
+  </select>
+  <div class="hv-cron"><label class="hv-field" for="hv-s-cron">Cron (UTC)</label><input type="text" id="hv-s-cron" name="cron" placeholder="30 2 * * 1-5"/></div>
+  <label class="hv-check"><input type="radio" name="scope" value="all" checked/> All namespaces</label>
+  <label class="hv-check"><input type="radio" name="scope" value="picked"/> Pick namespaces</label>
+  <div class="hv-pick"><div class="hv-nslist">{{#each namespaces}}<label><input type="checkbox" name="namespace" value="{{this}}"/> {{this}}</label>{{/each}}</div></div>
+  <label class="hv-field" for="hv-s-keep">Keep days</label>
+  <input type="number" id="hv-s-keep" name="keepDays" value="30" min="1" max="3650"/>
+  <label class="hv-check"><input type="checkbox" name="volumes"/> Include volume data</label>
+  <label class="hv-field" for="hv-s-name">Name (optional)</label>
+  <input type="text" id="hv-s-name" name="name" pattern="[a-z0-9]([\-a-z0-9]*[a-z0-9])?" maxlength="63"/>
+  <div class="hv-popbtns"><button type="submit" class="btn btn-primary hv-act">Add</button><button type="button" class="btn btn-default hv-act" popovertarget="hv-pop-schedule" popovertargetaction="hide">Cancel</button></div>
+</form>
+{{/if}}
+
+{{#if canGit}}
+<form id="hv-pop-gitsched" popover class="hv-pop" method="post" action="/plugin/hks-velero/git-schedule">
+  <h4>Git schedule</h4>
+  <input type="hidden" name="{{csrfParam}}" value="{{csrfToken}}"/><input type="hidden" name="clusterId" value="{{clusterId}}"/>
+  <select name="preset">
+    <option value="off">Off</option>
+    <option value="@hourly">Every hour</option>
+    <option value="0 2 * * *" selected>Every day at 02:00 UTC</option>
+    <option value="0 2 * * 0">Every Sunday at 02:00 UTC</option>
+    <option value="custom">Cron line</option>
+  </select>
+  <div class="hv-cron"><label class="hv-field" for="hv-g-cron">Cron (UTC)</label><input type="text" id="hv-g-cron" name="cron" placeholder="0 */6 * * *"/></div>
+  <div class="hv-popbtns"><button type="submit" class="btn btn-primary hv-act">Save</button><button type="button" class="btn btn-default hv-act" popovertarget="hv-pop-gitsched" popovertargetaction="hide">Cancel</button></div>
+</form>
+{{#if hasGitCopy}}
+<form id="hv-pop-gitrestore" popover class="hv-pop" method="post" action="/plugin/hks-velero/git-restore">
+  <h4>Restore from Git</h4>
+  <input type="hidden" name="{{csrfParam}}" value="{{csrfToken}}"/><input type="hidden" name="clusterId" value="{{clusterId}}"/>
+  <label class="hv-field" for="hv-gr-ns">Namespace</label>
+  <select id="hv-gr-ns" name="namespace">{{#each gitNamespaces}}<option value="{{this}}">{{this}}</option>{{/each}}</select>
+  <label class="hv-field" for="hv-gr-target">Into new namespace (optional)</label>
+  <input type="text" id="hv-gr-target" name="target" pattern="[a-z0-9]([\-a-z0-9]*[a-z0-9])?" maxlength="63"/>
+  <label class="hv-check"><input type="checkbox" name="overwrite"/> Overwrite existing</label>
+  <div class="hv-popbtns"><button type="submit" class="btn btn-primary hv-act">Restore</button><button type="button" class="btn btn-default hv-act" popovertarget="hv-pop-gitrestore" popovertargetaction="hide">Cancel</button></div>
+</form>
+{{/if}}
+{{/if}}
+{{/unless}}
+</div>

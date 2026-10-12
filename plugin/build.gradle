@@ -1,0 +1,81 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        maven { url "https://plugins.gradle.org/m2/" }
+    }
+    dependencies {
+        classpath "com.github.johnrengelman:shadow:8.1.1"
+        classpath "com.bertramlabs.plugins:asset-pipeline-gradle:$assetPipelineVersion"
+        classpath "com.bertramlabs.plugins:jsx-asset-pipeline:$assetPipelineVersion"
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'groovy'
+apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'asset-pipeline'
+
+group = 'com.morpheuslab'
+version = '0.4.2'
+
+java {
+    // Morpheus 9.0.2 runs Java 11 bytecode only
+    sourceCompatibility = JavaVersion.toVersion('1.11')
+    targetCompatibility = JavaVersion.toVersion('1.11')
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+configurations { provided }
+
+dependencies {
+    provided "com.morpheusdata:morpheus-plugin-api:$morphPluginApiVersion"
+    provided "org.codehaus.groovy:groovy-all:$groovyVersion"
+    provided "javax.servlet:javax.servlet-api:3.1.0"
+    implementation "org.slf4j:slf4j-api:$slf4jVersion"
+    implementation "org.yaml:snakeyaml:2.2"
+    // JGit 7 needs Java 17, Morpheus 9.0.2 runs Java 11 plugins
+    implementation("org.eclipse.jgit:org.eclipse.jgit:6.10.1.202505221210-r") { exclude group: 'org.slf4j' }
+    testImplementation "org.spockframework:spock-core:$spockVersion"
+}
+
+sourceSets {
+    main { compileClasspath += configurations.provided }
+    test {
+        compileClasspath += configurations.provided
+        runtimeClasspath += configurations.provided
+    }
+}
+
+test { useJUnitPlatform() }
+
+jar {
+    manifest {
+        attributes(
+            'Plugin-Class': 'com.morpheuslab.hksvelero.HksVeleroPlugin',
+            'Plugin-Version': archiveVersion.get(),
+            'Morpheus-Name': 'HKS Velero',
+            'Morpheus-Organization': 'morpheuslab',
+            'Morpheus-Code': 'hks-velero',
+            'Morpheus-Description': 'Back up and restore HKS clusters with Velero.',
+            'Morpheus-Labels': 'Plugin,Backup,Kubernetes',
+            'Morpheus-Min-Appliance-Version': '8.0.0'
+        )
+    }
+}
+
+assets { packagePlugin = false }
+
+shadowJar {
+    archiveClassifier.set('all')
+    exclude 'assets/webjars/**'
+    relocate 'org.yaml.snakeyaml', 'com.morpheuslab.hksvelero.shaded.snakeyaml'
+    relocate 'org.eclipse.jgit', 'com.morpheuslab.hksvelero.shaded.jgit'
+    relocate 'com.googlecode.javaewah', 'com.morpheuslab.hksvelero.shaded.javaewah'
+    relocate 'org.apache.commons.codec', 'com.morpheuslab.hksvelero.shaded.codec'
+}
+tasks.assemble.dependsOn tasks.shadowJar

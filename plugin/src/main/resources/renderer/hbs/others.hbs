@@ -1,0 +1,17 @@
+{{#if error}}<div class="hv-empty">{{error}}</div>{{/if}}
+{{#unless error}}
+{{#if folders}}
+<table class="table table-condensed hv-table" style="max-width:560px">
+  <thead><tr><th>Cluster</th><th>Shown</th><th></th></tr></thead>
+  <tbody>
+  {{#each folders}}
+  <tr><td><b>{{name}}</b></td><td>{{#if shown}}<span class="hv-chip hv-chip-ok">Yes</span>{{else}}<span class="hv-muted">No</span>{{/if}}</td>
+    <td>{{#if ../canBackup}}<form class="hv-inline" method="post" action="/plugin/hks-velero/other" style="justify-content:flex-end"><input type="hidden" name="{{../csrfParam}}" value="{{../csrfToken}}"/><input type="hidden" name="clusterId" value="{{../clusterId}}"/><input type="hidden" name="folder" value="{{name}}"/>
+      {{#if shown}}<input type="hidden" name="hide" value="true"/><button type="submit" class="btn btn-default hv-act">Hide</button>{{else}}<button type="submit" class="btn btn-default hv-act">Show</button>{{/if}}</form>{{/if}}</td></tr>
+  {{/each}}
+  </tbody>
+</table>
+{{else}}
+<div class="hv-empty">No other cluster has backups in this bucket yet.</div>
+{{/if}}
+{{/unless}}

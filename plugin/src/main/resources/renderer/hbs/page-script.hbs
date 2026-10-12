@@ -1,0 +1,412 @@
+<script nonce="{{nonce}}">
+// HKS Velero: live views, panels of an open backup or restore, and forms sent without reloading the page
+(function () {
+  if (window.hksVelero) return;
+  window.hksVelero = true;
+  var wasRunning = {};
+  var P = '/plugin/hks-velero/';
+
+  function get(url, done) {
+    fetch(url, { credentials: 'same-origin', cache: 'no-store', headers: { Accept: 'application/json' } })
+      .then(function (r) { return r.json(); }).then(done)
+      .catch(function () { done({ error: 'Could not load. Try again.' }); });
+  }
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function fill(pre, lines) {
+    if (!pre || !lines || !lines.length) return;
+    // follow the newest line, unless someone scrolled up to read
+    var atEnd = !pre.__seen || pre.scrollTop + pre.clientHeight >= pre.scrollHeight - 4;
+    pre.__seen = true;
+    pre.textContent = lines.join('\n');
+    if (atEnd) pre.scrollTop = pre.scrollHeight;
+  }
+
+  // swap in fresh plugin HTML (the page or one cluster tab) instead of reloading Morpheus
+  function refresh(root) {
+    if (!root) { location.reload(); return; }
+    var url = root.classList.contains('hvp') ? P + 'page-html' : P + 'tab-html?clusterId=' + root.getAttribute('data-cluster');
+    fetch(url, { credentials: 'same-origin', cache: 'no-store' }).then(function (r) { return r.text(); }).then(function (html) {
+      if (!html || html.indexOf('hv') < 0) { location.reload(); return; }
+      var y = window.scrollY;
+      root.outerHTML = html;
+      window.scrollTo(0, y);
+    }).catch(function () { location.reload(); });
+  }
+  function rootOf(node) { return node.closest('.hvp, .hv-panel'); }
+
+  // live log on the integration page and live progress on the tab
+  function tick() {
+    var page = document.getElementById('hv-page-log');
+    if (page) {
+      get(P + 'activity', function (d) {
+        fill(page, d.lines);
+        if (wasRunning.page && !d.running) setTimeout(function () { refresh(document.querySelector('.hvp')); }, 1500);
+        wasRunning.page = d.running;
+      });
+    }
+    var tab = document.getElementById('hv-tab-live');
+    if (tab) {
+      var id = tab.getAttribute('data-cluster');
+      get(P + 'status?clusterId=' + encodeURIComponent(id), function (d) {
+        var rows = document.getElementById('hv-live-rows');
+        if (rows && d.running) {
+          rows.innerHTML = '';
+          d.running.forEach(function (r) {
+            var div = el('div');
+            div.innerHTML = '<div style="margin-top:8px"><b></b> <span class="hv-muted"></span></div><div class="hv-prog"><i></i></div>';
+            div.querySelector('b').textContent = r.kind === 'job' ? r.name : (r.kind === 'backup' ? 'Backup ' : 'Restore ') + r.name;
+            div.querySelector('span').textContent = r.phase + (r.items ? ', ' + r.items + ' items' : '');
+            div.querySelector('i').style.width = Math.max(3, r.percent || 0) + '%';
+            rows.appendChild(div);
+          });
+        }
+        fill(document.getElementById('hv-live-log'), d.lines);
+        var now = d.running && d.running.length > 0;
+        // the box is there because something ran when the tab was drawn; once nothing runs, draw it again
+        if (!now && !d.error) { tab.removeAttribute('id'); setTimeout(function () { refresh(document.querySelector('.hv-panel')); }, 800); }
+      });
+    }
+    var other = document.getElementById('hv-s-other');
+    if (other && other.checked) loadOthers();
+    setTimeout(tick, 3000);
+  }
+
+  // Other clusters: listing the bucket is slow, so it happens only when the tab is opened
+  function loadOthers() {
+    var box = document.querySelector('.hv-others');
+    if (!box || box.getAttribute('data-loaded')) return;
+    box.setAttribute('data-loaded', '1');
+    fetch(P + 'others?clusterId=' + box.getAttribute('data-cluster'), { credentials: 'same-origin', cache: 'no-store' })
+      .then(function (r) { return r.text(); }).then(function (html) { box.innerHTML = html; })
+      .catch(function () { box.textContent = 'Could not load. Try again.'; });
+  }
+
+  // panel loaders
+  function loadLog(panel, box) {
+    var kind = panel.getAttribute('data-kind');
+    var name = panel.getAttribute('data-name') || box.getAttribute('data-backup');
+    get(P + 'journal?format=json&kind=' + kind + '&clusterId=' + box.getAttribute('data-cluster') + '&name=' + encodeURIComponent(name), function (d) {
+      panel.innerHTML = '';
+      if (d.error && !d.lines) { panel.appendChild(el('div', 'hv-bad', d.error)); return; }
+      var bar = el('div', 'hv-pickbar');
+      bar.style.margin = '0 0 6px';
+      var only = el('label', 'hv-check');
+      only.style.margin = '0';
+      var cb = el('input'); cb.type = 'checkbox';
+      only.appendChild(cb); only.appendChild(document.createTextNode(' Warnings and errors only (' + (d.bad || 0) + ')'));
+      bar.appendChild(only);
+      bar.appendChild(el('span', 'hv-spacer'));
+      bar.appendChild(el('span', 'hv-muted', (d.lines || []).length + ' lines'));
+      panel.appendChild(bar);
+      var box2 = el('div', 'hv-logbox');
+      (d.lines || []).forEach(function (l) {
+        box2.appendChild(el('div', / WARNING /.test(l) ? 'hv-lw' : (/ ERROR /.test(l) ? 'hv-le' : ''), l));
+      });
+      if (!(d.lines || []).length) box2.appendChild(el('div', '', 'The log is empty.'));
+      cb.addEventListener('change', function () { box2.classList.toggle('hv-only', cb.checked); });
+      panel.appendChild(box2);
+    });
+  }
+
+  function loadChanges(panel, box) {
+    get(P + 'changes?clusterId=' + box.getAttribute('data-cluster') + '&backup=' + encodeURIComponent(box.getAttribute('data-backup')), function (d) {
+      panel.innerHTML = '';
+      if (d.error) { panel.appendChild(el('div', 'hv-bad', d.error)); return; }
+      if (!d.addedCount && !d.removedCount) { panel.appendChild(el('p', '', 'No changes. The cluster has the same objects as this backup.')); return; }
+      var grid = el('div', 'hv-cmp');
+      [['New since the backup', d.added, d.addedCount], ['Gone since the backup', d.removed, d.removedCount]].forEach(function (c) {
+        var col = el('div');
+        col.appendChild(el('h4', '', c[0] + ' (' + c[2] + ')'));
+        col.appendChild(c[1].length ? el('div', 'hv-list', c[1].join('\n')) : el('p', 'hv-muted', 'None'));
+        grid.appendChild(col);
+      });
+      panel.appendChild(grid);
+    });
+  }
+
+  // Contents as a flow like the Argo CD tab: backup, then namespaces, then objects. Click a namespace to open it,
+  // click an object to pick it. Picked objects go into hidden inputs of the restore form.
+  var ABBR = { Deployment: 'deploy', ReplicaSet: 'rs', Pod: 'pod', Service: 'svc', ConfigMap: 'cm', Secret: 'sec', Ingress: 'ing',
+    StatefulSet: 'sts', DaemonSet: 'ds', Job: 'job', CronJob: 'cj', PersistentVolumeClaim: 'pvc', PersistentVolume: 'pv',
+    ServiceAccount: 'sa', Role: 'role', RoleBinding: 'rb', ClusterRole: 'crole', ClusterRoleBinding: 'crb', Namespace: 'ns',
+    HorizontalPodAutoscaler: 'hpa', NetworkPolicy: 'netpol', StorageClass: 'sc', CustomResourceDefinition: 'crd' };
+  var GROUP = { Deployment: 'work', StatefulSet: 'work', DaemonSet: 'work', ReplicaSet: 'work', Job: 'work', CronJob: 'work', Pod: 'work',
+    HorizontalPodAutoscaler: 'work', ConfigMap: 'conf', Secret: 'conf', Service: 'net', Ingress: 'net', NetworkPolicy: 'net',
+    IngressClass: 'net', PersistentVolumeClaim: 'stor', PersistentVolume: 'stor', StorageClass: 'stor', Namespace: 'ns' };
+  function abbr(k) { return ABBR[k] || (k.replace(/[a-z]/g, '').toLowerCase().slice(0, 4) || k.slice(0, 3).toLowerCase()); }
+
+  function loadContents(panel, box) {
+    var form = panel.querySelector('form');
+    var flow = panel.querySelector('.hv-flow');
+    get(P + 'contents?clusterId=' + box.getAttribute('data-cluster') + '&backup=' + encodeURIComponent(box.getAttribute('data-backup')), function (d) {
+      if (d.error) { flow.innerHTML = ''; flow.appendChild(el('div', 'hv-bad', d.error)); return; }
+      panel.querySelector('.hv-count').textContent = d.total + ' objects';
+      var tree = (d.tree || []).map(function (n) {
+        return { id: n.ns, label: n.label, count: n.count, kinds: n.kinds.map(function (k) { return { kind: k.kind, items: k.items }; }) };
+      });
+      var info = {};
+      tree.forEach(function (n) { n.kinds.forEach(function (k) { k.items.forEach(function (it) { info[it.key] = (n.id ? n.label + ' / ' : '') + k.kind + ' / ' + it.name; }); }); });
+      form.__hv = { tree: tree, info: info, backup: box.getAttribute('data-backup'), open: {}, sel: {}, q: '', kind: null, zoom: 1 };
+      if (tree.length <= 6) tree.forEach(function (n) { form.__hv.open[n.id] = true; });
+      drawFlow(form);
+      zoom(form, 'fit');
+      drawSide(form);
+    });
+  }
+
+  function node(stage, x, y, cls, badge, title, sub) {
+    var n = el('div', 'hv-node ' + cls);
+    n.style.left = x + 'px'; n.style.top = y + 'px';
+    n.appendChild(el('span', 'hv-badge', badge));
+    var nm = el('span', 'hv-nm');
+    nm.appendChild(el('b', '', title));
+    nm.appendChild(el('span', '', sub));
+    n.appendChild(nm);
+    stage.appendChild(n);
+    return n;
+  }
+
+  function matches(st, ns, it, kind) { return !st.q || (ns.label + ' ' + kind + ' ' + it.name).toLowerCase().indexOf(st.q) >= 0; }
+  function pickedIn(st, items) { return items.filter(function (it) { return st.sel[it.key]; }).length; }
+  function many(n, w) { return n + ' ' + w + (n === 1 ? '' : 's'); }
+  function setAll(st, items, on) { items.forEach(function (it) { if (on) st.sel[it.key] = true; else delete st.sel[it.key]; }); }
+
+  // the flow: backup, namespaces, kinds. One card per kind keeps even thousands of objects small.
+  function drawFlow(form) {
+    var st = form.__hv, flow = form.querySelector('.hv-flow');
+    var W = 250, H = 54, GX = 56, GY = 10, PAD = 10;
+    var keepX = flow.scrollLeft, keepY = flow.scrollTop;
+    flow.innerHTML = '';
+    var holder = el('div');
+    var stage = el('div', 'hv-stage');
+    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'hv-edges');
+    stage.appendChild(svg);
+    var rows = 0, edges = [], placed = 0;
+    var yOf = function (r) { return PAD + r * (H + GY); };
+    var xOf = function (c) { return PAD + c * (W + GX); };
+    var total = st.tree.reduce(function (s, n) { return s + n.count; }, 0);
+    var picked = Object.keys(st.sel).length;
+    node(stage, xOf(0), yOf(0), 'hv-root hv-k-ns', 'backup', st.backup, many(total, 'object') + (picked ? ', ' + picked + ' picked' : ''));
+    st.tree.forEach(function (n) {
+      var kinds = n.kinds.map(function (k) {
+        return { kind: k.kind, items: k.items, hits: k.items.filter(function (it) { return matches(st, n, it, k.kind); }) };
+      }).filter(function (k) { return !st.q || k.hits.length; });
+      if (st.q && !kinds.length) return;
+      var all = [];
+      n.kinds.forEach(function (k) { all = all.concat(k.items); });
+      var open = st.q ? true : !!st.open[n.id];
+      var top = rows;
+      var inNs = pickedIn(st, all);
+      var nd = node(stage, xOf(1), yOf(top), 'hv-k-ns', n.id ? 'ns' : 'all', n.label, many(n.count, 'object') + (inNs ? ', ' + inNs + ' picked' : ''));
+      var cb = el('input'); cb.type = 'checkbox'; cb.title = 'Pick everything in ' + n.label;
+      cb.checked = inNs > 0 && inNs === all.length; cb.indeterminate = inNs > 0 && inNs < all.length;
+      cb.addEventListener('click', function (e) { e.stopPropagation(); setAll(st, all, !(inNs === all.length)); update(form); });
+      nd.appendChild(cb);
+      nd.appendChild(el('span', 'hv-fold', open ? 'close' : 'open'));
+      nd.addEventListener('click', function () { if (!st.q) { st.open[n.id] = !st.open[n.id]; drawFlow(form); } });
+      edges.push([0, top, 0]);
+      var shown = open ? kinds : [];
+      shown.forEach(function (k, i) {
+        var g = GROUP[k.kind] || 'acc';
+        var inK = pickedIn(st, k.items);
+        var active = st.kind && st.kind.ns === n.id && st.kind.kind === k.kind;
+        var sub = (st.q ? k.hits.length + ' of ' : '') + many(k.items.length, 'object') + (inK ? ', ' + inK + ' picked' : '');
+        var kn = node(stage, xOf(2), yOf(top + i), 'hv-k-' + g + (inK ? ' hv-sel' : '') + (active ? ' hv-act' : ''), abbr(k.kind), k.kind, sub);
+        var kc = el('input'); kc.type = 'checkbox'; kc.title = 'Pick every ' + k.kind + ' in ' + n.label;
+        kc.checked = inK > 0 && inK === k.items.length; kc.indeterminate = inK > 0 && inK < k.items.length;
+        kc.addEventListener('click', function (e) { e.stopPropagation(); setAll(st, k.items, !(inK === k.items.length)); update(form); });
+        kn.appendChild(kc);
+        kn.addEventListener('click', function () { st.kind = { ns: n.id, kind: k.kind }; drawFlow(form); drawSide(form); });
+        edges.push([top, top + i, 1]);
+      });
+      rows += Math.max(1, shown.length);
+      placed++;
+    });
+    var width = xOf(3) - GX + PAD, height = yOf(Math.max(1, rows)) - GY + PAD;
+    stage.style.width = width + 'px'; stage.style.height = height + 'px';
+    svg.setAttribute('width', width); svg.setAttribute('height', height);
+    edges.forEach(function (e) {
+      var x1 = xOf(e[2]) + W, x2 = xOf(e[2] + 1), y1 = yOf(e[0]) + H / 2, y2 = yOf(e[1]) + H / 2, mx = (x1 + x2) / 2;
+      var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', 'M' + x1 + ',' + y1 + ' C' + mx + ',' + y1 + ' ' + mx + ',' + y2 + ' ' + x2 + ',' + y2);
+      svg.appendChild(path);
+    });
+    if (!placed) stage.appendChild(el('div', 'hv-muted', st.q ? 'Nothing matches.' : 'This backup has no objects.'));
+    // zoom: scale the stage and size its holder, so the scroll area matches what you see
+    stage.style.transformOrigin = '0 0';
+    stage.style.transform = 'scale(' + st.zoom + ')';
+    holder.style.width = Math.ceil(width * st.zoom) + 'px';
+    holder.style.height = Math.ceil(height * st.zoom) + 'px';
+    holder.appendChild(stage);
+    flow.appendChild(holder);
+    flow.scrollLeft = keepX; flow.scrollTop = keepY;
+    var zl = form.querySelector('.hv-zl');
+    if (zl) zl.textContent = Math.round(st.zoom * 100) + '%';
+    st.size = [width, height];
+  }
+
+  // side panel: the objects of the kind that was clicked, then everything picked so far
+  function drawSide(form) {
+    var st = form.__hv, list = form.querySelector('.hv-sidelist'), pl = form.querySelector('.hv-pickedlist');
+    if (st.kind) {
+      var ns = st.tree.filter(function (n) { return n.id === st.kind.ns; })[0];
+      var k = ns && ns.kinds.filter(function (x) { return x.kind === st.kind.kind; })[0];
+      if (k) {
+        list.innerHTML = '';
+        list.appendChild(el('h4', '', ns.label + ' / ' + k.kind));
+        var items = k.items.filter(function (it) { return matches(st, ns, it, k.kind); });
+        var btns = el('div', 'hv-sidebtns');
+        var pa = el('a', '', 'Pick all ' + items.length); pa.href = '#';
+        pa.addEventListener('click', function (e) { e.preventDefault(); setAll(st, items, true); update(form); });
+        var cl = el('a', '', 'Clear'); cl.href = '#';
+        cl.addEventListener('click', function (e) { e.preventDefault(); setAll(st, items, false); update(form); });
+        btns.appendChild(pa); btns.appendChild(cl);
+        list.appendChild(btns);
+        var box = el('div', 'hv-objs');
+        items.forEach(function (it) {
+          var lab = el('label');
+          var c = el('input'); c.type = 'checkbox'; c.checked = !!st.sel[it.key];
+          c.addEventListener('change', function () { if (c.checked) st.sel[it.key] = true; else delete st.sel[it.key]; update(form); });
+          lab.appendChild(c); lab.appendChild(document.createTextNode(it.name));
+          box.appendChild(lab);
+        });
+        if (!items.length) box.appendChild(el('p', 'hv-muted', 'Nothing matches.'));
+        list.appendChild(box);
+      }
+    }
+    var keys = Object.keys(st.sel);
+    pl.innerHTML = '';
+    var head = el('div', 'hv-sidebtns');
+    head.appendChild(el('b', '', 'Picked (' + keys.length + ')'));
+    if (keys.length) {
+      var ca = el('a', '', 'Clear all'); ca.href = '#';
+      ca.addEventListener('click', function (e) { e.preventDefault(); st.sel = {}; update(form); });
+      head.appendChild(ca);
+    }
+    pl.appendChild(head);
+    if (!keys.length) pl.appendChild(el('p', 'hv-muted', 'Nothing picked yet.'));
+    keys.slice(0, 300).forEach(function (key) {
+      var row = el('div', 'hv-pk');
+      row.appendChild(el('span', '', st.info[key] || key));
+      var rm = el('a', '', 'Remove'); rm.href = '#';
+      rm.addEventListener('click', function (e) { e.preventDefault(); delete st.sel[key]; update(form); });
+      row.appendChild(rm);
+      pl.appendChild(row);
+    });
+    if (keys.length > 300) pl.appendChild(el('p', 'hv-muted', (keys.length - 300) + ' more'));
+  }
+
+  // after any pick: hidden inputs for the restore form, counts, flow and side panel
+  function update(form) {
+    var box = form.querySelector('.hv-picked');
+    box.innerHTML = '';
+    var keys = Object.keys(form.__hv.sel);
+    keys.forEach(function (k) { var i = el('input'); i.type = 'hidden'; i.name = 'item'; i.value = k; box.appendChild(i); });
+    var s = form.querySelector('.hv-selected');
+    if (s) s.textContent = keys.length ? keys.length + ' picked' : 'Nothing picked';
+    drawFlow(form);
+    drawSide(form);
+  }
+
+  function zoom(form, how) {
+    var st = form && form.__hv;
+    if (!st) return;
+    if (how === 'in') st.zoom = Math.min(1.5, Math.round((st.zoom + 0.1) * 10) / 10);
+    if (how === 'out') st.zoom = Math.max(0.3, Math.round((st.zoom - 0.1) * 10) / 10);
+    if (how === 'fit' && st.size) {
+      var f = form.querySelector('.hv-flow');
+      st.zoom = Math.max(0.5, Math.min(1, Math.floor((f.clientWidth - 6) / st.size[0] * 100) / 100));
+    }
+    drawFlow(form);
+  }
+
+  function load(panel) {
+    if (!panel || panel.getAttribute('data-loaded')) return;
+    panel.setAttribute('data-loaded', '1');
+    var box = panel.closest('.hv-box');
+    var what = panel.getAttribute('data-panel');
+    if (what === 'log') loadLog(panel, box);
+    if (what === 'changes') loadChanges(panel, box);
+    if (what === 'contents') loadContents(panel, box);
+  }
+
+  document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (!t) return;
+    if (t.type === 'radio' && t.getAttribute('data-row')) {
+      var row = document.querySelector('tr.' + t.getAttribute('data-row'));
+      if (row) load(row.querySelector('.hv-ipanel.hv-on'));
+    }
+    if (t.id === 'hv-s-other' && t.checked) loadOthers();
+  });
+
+  // search in the contents of a backup
+  document.addEventListener('input', function (e) {
+    var f = e.target;
+    if (!f || !f.classList || !f.classList.contains('hv-filter')) return;
+    var form = f.closest('form');
+    if (!form || !form.__hv) return;
+    form.__hv.q = f.value.trim().toLowerCase();
+    drawFlow(form); drawSide(form);
+  });
+
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    if (!t) return;
+    if (t.id === 'hv-page-log') t.classList.toggle('hvp-big');
+    if (t.id === 'hv-live-log') t.classList.toggle('hv-big');
+    if (t.getAttribute && t.getAttribute('data-zoom')) {
+      e.preventDefault();
+      zoom(t.closest('form'), t.getAttribute('data-zoom'));
+      return;
+    }
+    if (t.classList && t.classList.contains('hv-itab')) {
+      e.preventDefault();
+      var box = t.closest('.hv-box');
+      box.querySelectorAll('.hv-itab').forEach(function (x) { x.classList.toggle('hv-on', x === t); });
+      box.querySelectorAll('.hv-ipanel').forEach(function (p) {
+        var on = p.getAttribute('data-panel') === t.getAttribute('data-show');
+        p.classList.toggle('hv-on', on);
+        if (on) load(p);
+      });
+    }
+  });
+
+  // send plugin forms in the background, then swap in fresh HTML: no blank page between clicks
+  document.addEventListener('submit', function (e) {
+    var form = e.target;
+    var action = form.getAttribute('action') || '';
+    if (action.indexOf(P) !== 0 || !rootOf(form) || !window.fetch) return;
+    e.preventDefault();
+    var btn = form.querySelector('button[type=submit], button:not([type])');
+    if (btn) { btn.disabled = true; btn.setAttribute('data-label', btn.textContent); btn.textContent = 'Working...'; }
+    var root = rootOf(form);
+    fetch(action, { method: 'POST', body: new FormData(form), credentials: 'same-origin', headers: { 'X-HV-Ajax': '1' } })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function () {
+        try { if (form.matches(':popover-open')) form.hidePopover(); } catch (x) { }
+        refresh(root);
+      })
+      .catch(function () { form.submit(); });
+  }, true);
+
+  // Esc closes the open row, like the Argo CD tab. Open dialogs close by themselves first.
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape' || document.querySelector(':popover-open')) return;
+    var t = e.target;
+    if (t && (t.tagName === 'INPUT' && !/^(radio|checkbox)$/i.test(t.type) || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT')) { t.blur(); return; }
+    ['hv-b-none', 'hv-r-none', 'hv-c-none'].forEach(function (id) {
+      var n = document.getElementById(id);
+      if (n && !n.checked) n.checked = true;
+    });
+  });
+
+  tick();
+})();
+</script>
